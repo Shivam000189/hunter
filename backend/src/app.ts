@@ -1,17 +1,18 @@
 import express from "express";
 import cors from "cors";
-import applicationRoutes from "./routes/applicationRoutes";
-import { errorHandler } from "./middleware/errorHandler";
+import prisma from "./config/prisma";
+
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.use("/applications", applicationRoutes);
 
-app.use("/applications", applicationRoutes);
-app.use(errorHandler);
+app.get("/test-db", async (req, res) => {
+  const users = await prisma.user.findMany();
+  res.json(users);
+});
 
 app.get("/", (_req, res) => {
   res.send("API running...");

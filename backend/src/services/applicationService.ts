@@ -1,44 +1,42 @@
-import Application from "../models/Application";
+import prisma from "../config/prisma";
 import { AppError } from "../utils/AppError";
-
 
 interface QueryOptions {
   status?: string | undefined;
   search?: string | undefined;
-  page?: number;
-  limit?: number;
+  page?: number | undefined;
+  limit?: number | undefined;
 }
 
-// CREATE
 export const createApplicationService = async (data: any) => {
-  return await Application.create(data);
+  return await prisma.application.create({ data });
 };
 
-// GET ALL (with filters)
 export const getApplicationsService = async (options: QueryOptions) => {
   const { status, search, page = 1, limit = 10 } = options;
 
-  const query: any = {};
+  const where: any = {};
 
-  if (status) {
-    query.status = status;
-  }
+  if (status) where.status = status;
 
   if (search) {
-    query.$or = [
-      { company: { $regex: search, $options: "i" } },
-      { role: { $regex: search, $options: "i" } },
+    where.OR = [
+      { company: { contains: search, mode: "insensitive" } },
+      { role: { contains: search, mode: "insensitive" } },
     ];
   }
 
   const skip = (page - 1) * limit;
 
-  const total = await Application.countDocuments(query);
-
-  const data = await Application.find(query)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
+  const [total, data] = await Promise.all([
+    prisma.application.count({ where }),
+    prisma.application.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+  ]);
 
   return {
     total,
@@ -48,31 +46,21 @@ export const getApplicationsService = async (options: QueryOptions) => {
   };
 };
 
-// UPDATE
-export const updateApplicationService = async (
-  id: string,
-  status: string
-) => {
-  const app = await Application.findByIdAndUpdate(
-    id,
-    { status },
-    { new: true }
-  );
+export const updateApplicationService = async (id: string, status: string) => {
+  const existing = await prisma.application.findUnique({ where: { id } });
 
-  if (!app) {
-    throw new AppError("Application not found", 404);
-  }
+  if (!existing) throw new AppError("Application not found", 404);
 
-  return app;
+  return await prisma.application.update({
+    where: { id },
+    data: { status },
+  });
 };
 
-// DELETE
 export const deleteApplicationService = async (id: string) => {
-  const app = await Application.findByIdAndDelete(id);
+  const existing = await prisma.application.findUnique({ where: { id } });
 
-  if (!app) {
-    throw new AppError("Application not found", 404);
-  }
+  if (!existing) throw new AppError("Application not found", 404);
 
-  return;
+  await prisma.application.delete({ where: { id } });
 };
