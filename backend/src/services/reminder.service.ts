@@ -10,9 +10,22 @@ export const triggerReminders = async () => {
   let totalJobs = 0;
 
   for (const user of users) {
-    if (!user.reminderSettings?.enabled) continue;
+    let settings = user.reminderSettings;
 
-    const staleDays = user.reminderSettings.staleDays;
+    if (!settings) {
+        settings = await prisma.reminderSettings.create({
+        data: {
+            userId: user.id,
+            enabled: true,
+            staleDays: 7,
+        },
+        });
+    }
+
+    if (!settings.enabled) continue;
+
+    // ✅ USE settings (not user.reminderSettings)
+    const staleDays = settings.staleDays;
 
     const staleDate = new Date();
     staleDate.setDate(staleDate.getDate() - staleDays);

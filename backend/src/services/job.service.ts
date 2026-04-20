@@ -4,11 +4,15 @@ import { JobStatus } from "@prisma/client";
 export const createJob = async (userId: string, data: any) => {
   return prisma.job.create({
     data: {
-      ...data,
-      userId,
-      status: "APPLIED",
-      appliedDate: new Date(data.appliedDate),
-    },
+        company: data.company,
+        role: data.role,
+        jobUrl: data.jobUrl,
+        appliedDate: new Date(data.appliedDate),
+        notes: data.notes,
+        resumeId: data.resumeId,
+        userId,
+        status: "APPLIED",
+        },
   });
 };
 

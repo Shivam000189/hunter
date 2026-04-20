@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { registerUser, loginUser, getMe } from "../services/auth.service";
 import { generateToken } from "../utils/jwt";
 import { AuthRequest } from "../middleware/auth.middleware";
-import { success } from "zod";
+
 
 
 //Register
@@ -85,7 +85,7 @@ export const me = async (req:AuthRequest, res:Response) => {
 
 export const logout = async (_req:Request, res:Response) => {
       res.json({
-        success:false,
-        message:"Logged out Succesfully"
-      })
+        success: true,
+        message: "Logged out successfully",
+      });
 }
