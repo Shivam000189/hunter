@@ -24,6 +24,8 @@ model User {
 
   coverLetters CoverLetter[]
   resumes Resume[]
+  reminderLogs     ReminderLog[]
+  reminderSettings ReminderSettings?
 }
 
 
@@ -48,6 +50,7 @@ model Job {
 
 
   coverLetters CoverLetter[]
+  reminderLogs     ReminderLog[]
 }
 
 enum JobStatus {
@@ -84,4 +87,28 @@ model Resume {
   user   User @relation(fields: [userId], references: [id])
 
   uploadedAt DateTime @default(now())
+}
+
+
+
+model ReminderLog{
+  id String @id @default(uuid())
+  jobId String
+  job Job @relation(fields: [jobId], references: [id])
+
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+
+  sentAt   DateTime @default(now())
+  nextReminder  DateTime
+}
+
+
+model ReminderSettings{
+  id  String @id  @default(uuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+
+  staleDays Int @default(7)
+  enabled Boolean @default(true)
 }
