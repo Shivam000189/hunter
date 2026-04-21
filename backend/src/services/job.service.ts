@@ -48,12 +48,22 @@ export const getJobById = async (userId: string, id: string) => {
   return job;
 };
 
-export const updateJob = async (userId: string, id: string, data: any) => {
+export const updateJob = async (
+  userId: string,
+  id: string,
+  data: any
+) => {
   await getJobById(userId, id);
 
   return prisma.job.update({
     where: { id },
-    data,
+    data: {
+      ...(data.company && { company: data.company }),
+      ...(data.role && { role: data.role }),
+      ...(data.jobUrl && { jobUrl: data.jobUrl }),
+      ...(data.notes && { notes: data.notes }),
+      ...(data.resumeId && { resumeId: data.resumeId }),
+    },
   });
 };
 

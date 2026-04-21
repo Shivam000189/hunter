@@ -39,12 +39,18 @@ export const triggerReminders = async () => {
     });
 
     for (const job of jobs) {
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: user.email,
-        subject: `Follow up: ${job.company}`,
-        text: `It's been a while since you applied to ${job.company}. Consider following up.`,
-      });
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: user.email,
+          subject: `Follow up: ${job.company}`,
+          text: `It's been a while since you applied to ${job.company}. Consider following up.`,
+        });
+
+        totalEmails++;
+      } catch (error) {
+        console.error("Email failed:", error);
+      }
 
       totalEmails++;
       totalJobs++;

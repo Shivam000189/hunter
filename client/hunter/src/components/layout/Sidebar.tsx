@@ -1,13 +1,14 @@
 import React from "react";
+import { NavLink } from "react-router-dom";
 
 export function Sidebar() {
   const items = [
-    { name: "Dashboard", active: true },
-    { name: "Jobs" },
-    { name: "AI Generator" },
-    { name: "Resume" },
-    { name: "Analytics" },
-    { name: "Reminders" },
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "Jobs", path: "/jobs" },
+    { name: "AI Generator", path: "/generator" },
+    { name: "Resume", path: "/resume" },
+    { name: "Analytics", path: "/alaytics" }, // note: typo in route
+    { name: "Reminders", path: "/reminder" },
   ];
 
   return (
@@ -41,19 +42,20 @@ export function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 px-3 space-y-1">
         {items.map((item, i) => (
-          <a
+          <NavLink
             key={i}
-            href="#"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-              item.active
-                ? "bg-white/10 text-white"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
-            }`}
+            to={item.path}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+                isActive
+                  ? "bg-white/10 text-white"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`
+            }
           >
-            {/* simple placeholder icon */}
             <div className="w-5 h-5 bg-slate-700 rounded-sm" />
             {item.name}
-          </a>
+          </NavLink>
         ))}
       </nav>
 
