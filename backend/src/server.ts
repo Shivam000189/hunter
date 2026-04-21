@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
-import "./cron/reminder.cron";
 dotenv.config();
+import "./cron/reminder.cron";
 
 import app from "./app";
 

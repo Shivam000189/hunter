@@ -1,5 +1,6 @@
 import prisma from "../config/prisma";
 import { JobStatus } from "@prisma/client";
+import { AppError } from "../utils/AppError";
 
 export const createJob = async (userId: string, data: any) => {
   return prisma.job.create({
@@ -41,7 +42,7 @@ export const getJobById = async (userId: string, id: string) => {
   const job = await prisma.job.findUnique({ where: { id } });
 
   if (!job || job.userId !== userId) {
-    throw { status: 403, message: "Not your job application" };
+    throw new AppError("Not your job application", 403);
   }
 
   return job;

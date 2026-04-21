@@ -16,10 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 
-app.get("/test-db", async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.json(users);
-});
+
 
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/jobs", jobRoutes);
