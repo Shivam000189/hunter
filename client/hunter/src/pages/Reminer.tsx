@@ -53,7 +53,7 @@ export function Reminder() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-100 lg:flex-row">
+    <div className="app-shell flex min-h-screen flex-col">
       <Sidebar />
 
       <div className="min-w-0 flex-1 space-y-6 p-4 sm:p-6">

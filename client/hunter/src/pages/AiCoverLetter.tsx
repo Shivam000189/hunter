@@ -68,7 +68,7 @@ export function AiCoverLetter() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-100 lg:flex-row">
+    <div className="app-shell flex min-h-screen flex-col">
       <Sidebar />
 
       <div className="min-w-0 flex-1 overflow-auto p-4 sm:p-6">

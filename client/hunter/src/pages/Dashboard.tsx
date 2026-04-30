@@ -47,6 +47,16 @@ const emptyAnalytics: AnalyticsData = {
   },
 };
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+
+  if (hour < 5) return "Good Night";
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  if (hour < 21) return "Good Evening";
+  return "Good Night";
+};
+
 export function Dashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData>(emptyAnalytics);
   const [user, setUser] = useState<User | null>(null);
@@ -73,14 +83,15 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 lg:flex-row">
+    <div className="app-shell flex min-h-screen flex-col">
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex flex-col gap-4 bg-slate-50 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
+        <header className="flex flex-col gap-4 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-bold">
-              Good morning{user?.name ? `, ${user.name.split(" ")[0]}` : ""}
+              {getGreeting()}
+              {user?.name ? `, ${user.name.split(" ")[0]}` : ""}
             </h2>
             <p className="text-sm text-slate-500">
               Here's your job search overview
