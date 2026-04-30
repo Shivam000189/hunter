@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import prisma from "./config/prisma";
 import authRoutes from "./routes/auth.routes";
 import jobRoutes from "./routes/job.routes";
 import aiRoutes from "./routes/ai.routes";

@@ -1,154 +1,208 @@
+import { type FormEvent, useEffect, useState } from "react";
+import api from "../api/client";
 import { Sidebar } from "../components/layout/Sidebar";
 
-export function AiCoverLetter() {
-  return (
-    <div className="flex min-h-screen bg-slate-100">
+type Job = {
+  id?: string;
+  _id?: string;
+  company: string;
+  role: string;
+};
 
-      {/* Sidebar */}
+type CoverLetter = {
+  _id: string;
+  content: string;
+  jobId?: string | null;
+  generatedAt: string;
+};
+
+const formatDate = (date: string) =>
+  new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(
+    new Date(date)
+  );
+
+export function AiCoverLetter() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [letters, setLetters] = useState<CoverLetter[]>([]);
+  const [jobId, setJobId] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [skills, setSkills] = useState("");
+  const [tone, setTone] = useState("professional");
+  const [generatedContent, setGeneratedContent] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function loadData() {
+    Promise.all([
+      api.get("/api/v1/jobs", { params: { limit: 100 } }),
+      api.get("/api/v1/ai/cover-letters"),
+    ]).then(([jobsRes, lettersRes]) => {
+      setJobs(jobsRes.data.data || []);
+      setLetters(lettersRes.data.data || []);
+    });
+  }
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await api.post("/api/v1/ai/cover-letter", {
+        jobDescription,
+        userSkills: skills
+          .split(",")
+          .map((skill) => skill.trim())
+          .filter(Boolean),
+        tone,
+        jobId: jobId || undefined,
+      });
+
+      setGeneratedContent(res.data.data.content);
+      loadData();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col bg-slate-100 lg:flex-row">
       <Sidebar />
 
-      {/* Main Content */}
-      <div className="flex-1 p-6 overflow-auto">
+      <div className="min-w-0 flex-1 overflow-auto p-4 sm:p-6">
+        <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
+          <h2 className="mb-4 text-xl font-bold">AI Cover Letter Generator</h2>
 
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-
-          <h2 className="text-xl font-bold mb-4">
-            AI Cover Letter Generator
-          </h2>
-
-          <div className="grid grid-cols-2 gap-4 mb-6">
-
-            {/* INPUT */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-
-              <h3 className="font-semibold mb-3 text-sm">Input</h3>
+          <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <form
+              onSubmit={handleSubmit}
+              className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-5"
+            >
+              <h3 className="mb-3 text-sm font-semibold">Input</h3>
 
               <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-500">
+                    Related Job
+                  </label>
+                  <select
+                    value={jobId}
+                    onChange={(e) => setJobId(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
+                  >
+                    <option value="">No linked job</option>
+                    {jobs.map((job) => (
+                      <option key={job._id || job.id} value={job._id || job.id}>
+                        {job.role} at {job.company}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                  <label className="mb-1 block text-xs font-medium text-slate-500">
                     Job Description
                   </label>
 
                   <textarea
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
                     placeholder="Paste the job description here..."
-                    className="w-full h-24 px-3 py-2 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none resize-none text-sm"
+                    required
+                    className="h-28 w-full resize-none rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                  <label className="mb-1 block text-xs font-medium text-slate-500">
                     Skills
                   </label>
 
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    <span className="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg text-xs flex items-center gap-1">
-                      React <button>×</button>
-                    </span>
-                    <span className="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg text-xs flex items-center gap-1">
-                      TypeScript <button>×</button>
-                    </span>
-                  </div>
-
-                  {/* FIXED INPUT (self closing) */}
                   <input
                     type="text"
-                    placeholder="Add skill + Enter"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none text-sm"
+                    value={skills}
+                    onChange={(e) => setSkills(e.target.value)}
+                    placeholder="React, TypeScript, Node.js"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                  <label className="mb-1 block text-xs font-medium text-slate-500">
                     Tone
                   </label>
 
-                  <select className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none text-sm bg-white">
-                    <option>Professional</option>
-                    <option>Enthusiastic</option>
-                    <option>Concise</option>
+                  <select
+                    value={tone}
+                    onChange={(e) => setTone(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
+                  >
+                    <option value="professional">Professional</option>
+                    <option value="enthusiastic">Enthusiastic</option>
+                    <option value="concise">Concise</option>
                   </select>
                 </div>
 
-                <button className="w-full py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors">
-                  Generate
+                <button className="w-full rounded-xl bg-indigo-600 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700">
+                  {loading ? "Generating..." : "Generate"}
                 </button>
+              </div>
+            </form>
 
+            <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-5">
+              <h3 className="mb-3 text-sm font-semibold">Output</h3>
+
+              <div className="h-48 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+                {generatedContent || "Generated cover letter will appear here."}
               </div>
             </div>
-
-            {/* OUTPUT */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-
-              <h3 className="font-semibold mb-3 text-sm">Output</h3>
-
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-sm leading-relaxed text-slate-700 h-48 overflow-y-auto">
-
-                Dear Hiring Manager,
-                <br /><br />
-                I am writing to express my strong interest in the Frontend Developer position...
-                <br /><br />
-                My experience in React and TypeScript aligns perfectly...
-
-              </div>
-
-              <div className="flex items-center gap-2 mt-3">
-
-                <button className="flex-1 py-2 border border-slate-300 rounded-xl text-sm font-medium hover:bg-slate-50 flex justify-center gap-2">
-                  Copy
-                </button>
-
-                <button className="flex-1 py-2 border border-slate-300 rounded-xl text-sm font-medium hover:bg-slate-50 flex justify-center gap-2">
-                  Edit
-                </button>
-
-              </div>
-
-            </div>
-
           </div>
 
-          {/* TABLE */}
-          <h3 className="font-semibold mb-3 text-sm">
-            Previous Letters
-          </h3>
+          <h3 className="mb-3 text-sm font-semibold">Previous Letters</h3>
 
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-
-            <table className="w-full text-sm">
-
+          <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white shadow-sm">
+            <table className="w-full min-w-[520px] text-sm">
               <thead className="bg-slate-50 text-slate-500">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium">Company</th>
-                  <th className="text-left px-4 py-3 font-medium">Date</th>
-                  <th className="text-left px-4 py-3 font-medium">Actions</th>
+                  <th className="px-4 py-3 text-left font-medium">Preview</th>
+                  <th className="px-4 py-3 text-left font-medium">Date</th>
+                  <th className="px-4 py-3 text-left font-medium">Job</th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-slate-100">
+                {letters.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-5 text-slate-500">
+                      No cover letters generated yet.
+                    </td>
+                  </tr>
+                ) : (
+                  letters.map((letter) => {
+                    const job = jobs.find(
+                      (item) => (item._id || item.id) === letter.jobId
+                    );
 
-                <tr className="hover:bg-slate-50">
-                  <td className="px-4 py-3">Google</td>
-                  <td className="px-4 py-3 text-slate-500">Apr 15</td>
-                  <td className="px-4 py-3 text-indigo-600 cursor-pointer">
-                    View
-                  </td>
-                </tr>
-
-                <tr className="hover:bg-slate-50">
-                  <td className="px-4 py-3">Meta</td>
-                  <td className="px-4 py-3 text-slate-500">Apr 10</td>
-                  <td className="px-4 py-3 text-indigo-600 cursor-pointer">
-                    View
-                  </td>
-                </tr>
-
+                    return (
+                      <tr key={letter._id} className="hover:bg-slate-50">
+                        <td className="max-w-[320px] truncate px-4 py-3">
+                          {letter.content}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500">
+                          {formatDate(letter.generatedAt)}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500">
+                          {job ? `${job.role} at ${job.company}` : "Not linked"}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
-
             </table>
-
           </div>
-
         </div>
       </div>
     </div>

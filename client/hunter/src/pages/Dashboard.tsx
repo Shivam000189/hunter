@@ -1,110 +1,213 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import api from "../api/client";
 import { WeeklyChart } from "../charts/WeeklyChart";
 import { Sidebar } from "../components/layout/Sidebar";
 import { StatusChart } from "../charts/StatusChart";
 
+type AnalyticsData = {
+  totalApplications: number;
+  statusBreakdown: Record<"applied" | "interview" | "offer" | "rejected", number>;
+  responseRate: number;
+  offerRate: number;
+  weeklyApplications: { week: string; count: number }[];
+  avgDaysToResponse: number;
+  resumeInsights: {
+    bestPerformingResume: {
+      versionName: string;
+      usage: number;
+      interviews: number;
+      offers: number;
+      successRate: number;
+    } | null;
+    resumes: {
+      _id: string;
+      versionName: string;
+      usage: number;
+      interviews: number;
+      offers: number;
+      successRate: number;
+    }[];
+  };
+};
+
+type User = {
+  name: string;
+};
+
+const emptyAnalytics: AnalyticsData = {
+  totalApplications: 0,
+  statusBreakdown: { applied: 0, interview: 0, offer: 0, rejected: 0 },
+  responseRate: 0,
+  offerRate: 0,
+  weeklyApplications: [],
+  avgDaysToResponse: 0,
+  resumeInsights: {
+    bestPerformingResume: null,
+    resumes: [],
+  },
+};
+
 export function Dashboard() {
+  const [analytics, setAnalytics] = useState<AnalyticsData>(emptyAnalytics);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      api.get("/api/v1/analytics"),
+      api.get("/api/auth/me"),
+    ])
+      .then(([analyticsRes, userRes]) => {
+        setAnalytics(analyticsRes.data.data || emptyAnalytics);
+        setUser(userRes.data.data);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const statusLabels = ["Applied", "Interview", "Offer", "Rejected"];
+  const statusValues = [
+    analytics.statusBreakdown.applied,
+    analytics.statusBreakdown.interview,
+    analytics.statusBreakdown.offer,
+    analytics.statusBreakdown.rejected,
+  ];
+
   return (
-    <div className="flex h-screen bg-slate-50">
-      {/* Sidebar */}
+    <div className="flex min-h-screen flex-col bg-slate-50 lg:flex-row">
       <Sidebar />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 bg-slate-50 ">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex flex-col gap-4 bg-slate-50 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-bold">
-              Good morning, John 👋
+              Good morning{user?.name ? `, ${user.name.split(" ")[0]}` : ""}
             </h2>
-            <p className="text-slate-500 text-sm">
+            <p className="text-sm text-slate-500">
               Here's your job search overview
             </p>
           </div>
-
-          <div className="flex items-center gap-4">
-            {/* Search */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="w-64 pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none text-sm"
-              />
-              <svg
-                className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
-
-            {/* Notification */}
-            <button className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50">
-              <svg
-                className="w-5 h-5 text-slate-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-            </button>
-          </div>
         </header>
 
-        {/* Scrollable Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <p className="text-sm text-slate-500">Total Applications</p>
-              <h3 className="text-3xl font-bold mt-2">142</h3>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+          {loading ? (
+            <div className="rounded-2xl bg-white p-5 text-sm text-slate-500 shadow-sm">
+              Loading your dashboard...
             </div>
+          ) : (
+            <>
+              <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-2xl bg-white p-5 shadow-sm">
+                  <p className="text-sm text-slate-500">Total Applications</p>
+                  <h3 className="mt-2 text-3xl font-bold">
+                    {analytics.totalApplications}
+                  </h3>
+                </div>
 
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <p className="text-sm text-slate-500">Response Rate</p>
-              <h3 className="text-3xl font-bold mt-2">28%</h3>
-            </div>
+                <div className="rounded-2xl bg-white p-5 shadow-sm">
+                  <p className="text-sm text-slate-500">Response Rate</p>
+                  <h3 className="mt-2 text-3xl font-bold">
+                    {analytics.responseRate}%
+                  </h3>
+                </div>
 
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <p className="text-sm text-slate-500">Offer Rate</p>
-              <h3 className="text-3xl font-bold mt-2">7%</h3>
-            </div>
+                <div className="rounded-2xl bg-white p-5 shadow-sm">
+                  <p className="text-sm text-slate-500">Offer Rate</p>
+                  <h3 className="mt-2 text-3xl font-bold">
+                    {analytics.offerRate}%
+                  </h3>
+                </div>
 
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <p className="text-sm text-slate-500">Interviews</p>
-              <h3 className="text-3xl font-bold mt-2">32</h3>
-            </div>
-          </div>
+                <div className="rounded-2xl bg-white p-5 shadow-sm">
+                  <p className="text-sm text-slate-500">Interviews</p>
+                  <h3 className="mt-2 text-3xl font-bold">
+                    {analytics.statusBreakdown.interview}
+                  </h3>
+                </div>
+              </div>
 
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="bg-white rounded-2xl p-5 shadow-sm lg:col-span-2">
-              <h3 className="font-semibold mb-4">
-                Weekly Applications
-              </h3>
-                <WeeklyChart />
-            </div>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <div className="rounded-2xl bg-white p-5 shadow-sm lg:col-span-2">
+                  <h3 className="mb-4 font-semibold">Weekly Applications</h3>
+                  <div className="h-64 sm:h-80">
+                    <WeeklyChart
+                      labels={analytics.weeklyApplications.map((item) => item.week)}
+                      values={analytics.weeklyApplications.map((item) => item.count)}
+                    />
+                  </div>
+                </div>
 
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <h3 className="font-semibold mb-4">
-                Status Breakdown
-              </h3>
-              <StatusChart />
-            </div>
-          </div>
+                <div className="rounded-2xl bg-white p-5 shadow-sm">
+                  <h3 className="mb-4 font-semibold">Status Breakdown</h3>
+                  <div className="mx-auto h-64 max-w-sm">
+                    <StatusChart labels={statusLabels} values={statusValues} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <div className="rounded-2xl bg-white p-5 shadow-sm">
+                  <h3 className="mb-3 font-semibold">Best Resume</h3>
+                  {analytics.resumeInsights.bestPerformingResume ? (
+                    <div className="space-y-3">
+                      <div className="rounded-xl bg-amber-50 p-4">
+                        <div className="font-semibold text-amber-950">
+                          {analytics.resumeInsights.bestPerformingResume.versionName}
+                        </div>
+                        <div className="mt-1 text-xs font-medium text-amber-700">
+                          Best Performing
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="rounded-xl bg-slate-50 p-3">
+                          <div className="text-xs text-slate-500">Used</div>
+                          <div className="font-semibold">
+                            {analytics.resumeInsights.bestPerformingResume.usage}x
+                          </div>
+                        </div>
+                        <div className="rounded-xl bg-slate-50 p-3">
+                          <div className="text-xs text-slate-500">Success</div>
+                          <div className="font-semibold">
+                            {analytics.resumeInsights.bestPerformingResume.successRate}%
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">
+                      No resume performance data yet.
+                    </p>
+                  )}
+                </div>
+
+                <div className="rounded-2xl bg-white p-5 shadow-sm lg:col-span-2">
+                  <h3 className="mb-4 font-semibold">Resume Usage</h3>
+                  {analytics.resumeInsights.resumes.length === 0 ? (
+                    <p className="text-sm text-slate-500">
+                      Link resumes to jobs to see usage.
+                    </p>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {analytics.resumeInsights.resumes.slice(0, 4).map((resume) => (
+                        <div
+                          key={resume._id}
+                          className="rounded-xl border border-slate-100 p-3"
+                        >
+                          <div className="truncate text-sm font-medium">
+                            {resume.versionName}
+                          </div>
+                          <div className="mt-2 flex gap-3 text-xs text-slate-500">
+                            <span>Used {resume.usage}x</span>
+                            <span>{resume.interviews} interviews</span>
+                            <span>{resume.offers} offers</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </main>
       </div>
     </div>

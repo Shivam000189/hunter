@@ -6,20 +6,32 @@ import {
   Legend,
 } from "chart.js";
 
-import { analyticsPie } from "../data/mockAnalytics";
-
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export function AnalyticsPieChart() {
+type AnalyticsPieChartProps = {
+  labels: string[];
+  values: number[];
+};
+
+export function AnalyticsPieChart({ labels, values }: AnalyticsPieChartProps) {
   const data = {
-    labels: analyticsPie.labels,
+    labels,
     datasets: [
       {
-        data: analyticsPie.data,
+        data: values,
         backgroundColor: ["#4F46E5", "#10B981", "#F59E0B", "#F43F5E"],
       },
     ],
   };
 
-  return <Doughnut data={data} options={{ cutout: "55%" }} />;
+  return (
+    <Doughnut
+      data={data}
+      options={{
+        cutout: "55%",
+        maintainAspectRatio: false,
+        responsive: true,
+      }}
+    />
+  );
 }

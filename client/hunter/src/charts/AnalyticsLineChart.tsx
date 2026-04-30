@@ -7,17 +7,20 @@ import {
   PointElement,
 } from "chart.js";
 
-import { analyticsTrend } from "../data/mockAnalytics";
-
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
 
-export function AnalyticsLineChart() {
+type AnalyticsLineChartProps = {
+  labels: string[];
+  values: number[];
+};
+
+export function AnalyticsLineChart({ labels, values }: AnalyticsLineChartProps) {
   const data = {
-    labels: analyticsTrend.labels,
+    labels,
     datasets: [
       {
         label: "Response Time",
-        data: analyticsTrend.data,
+        data: values,
         borderColor: "#4F46E5",
         backgroundColor: "rgba(79,70,229,0.1)",
         fill: true,
@@ -27,5 +30,14 @@ export function AnalyticsLineChart() {
     ],
   };
 
-  return <Line data={data} options={{ plugins: { legend: { display: false } } }} />;
+  return (
+    <Line
+      data={data}
+      options={{
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: { legend: { display: false } },
+      }}
+    />
+  );
 }

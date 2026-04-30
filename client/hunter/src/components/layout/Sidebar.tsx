@@ -1,20 +1,35 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import api from "../../api/client";
+
+type User = {
+  name: string;
+  email: string;
+};
 
 export function Sidebar() {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    api
+      .get("/api/auth/me")
+      .then((res) => setUser(res.data.data))
+      .catch(() => setUser(null));
+  }, []);
+
   const items = [
     { name: "Dashboard", path: "/dashboard" },
     { name: "Jobs", path: "/jobs" },
     { name: "AI Generator", path: "/generator" },
     { name: "Resume", path: "/resume" },
-    { name: "Analytics", path: "/alaytics" }, // note: typo in route
+    { name: "Analytics", path: "/analytics" },
     { name: "Reminders", path: "/reminder" },
   ];
 
   return (
-    <aside className="w-60 h-screen bg-slate-900 text-white flex flex-col">
+    <aside className="w-full shrink-0 bg-slate-900 text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-60 lg:flex-col">
       {/* Logo */}
-      <div className="p-6">
+      <div className="p-4 lg:p-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
             <svg
@@ -40,13 +55,13 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 space-y-1">
+      <nav className="flex gap-2 overflow-x-auto px-3 pb-4 lg:flex-1 lg:flex-col lg:space-y-1 lg:overflow-visible lg:pb-0">
         {items.map((item, i) => (
           <NavLink
             key={i}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+              `flex shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-sm transition lg:text-base ${
                 isActive
                   ? "bg-white/10 text-white"
                   : "text-slate-400 hover:text-white hover:bg-white/5"
@@ -60,16 +75,18 @@ export function Sidebar() {
       </nav>
 
       {/* User */}
-      <div className="p-4 border-t border-slate-800">
+      <div className="hidden border-t border-slate-800 p-4 lg:block">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-sm font-bold">
-            JD
+            {user?.name?.slice(0, 2).toUpperCase() || "U"}
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium truncate">John Doe</div>
+            <div className="text-sm font-medium truncate">
+              {user?.name || "User"}
+            </div>
             <div className="text-xs text-slate-400 truncate">
-              john@example.com
+              {user?.email || ""}
             </div>
           </div>
 

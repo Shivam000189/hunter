@@ -10,6 +10,7 @@ router.use(authMiddleware);
 router.post("/upload", upload.single("file"), resumeController.upload);
 
 router.get("/", resumeController.getAll);
+router.get("/analytics", resumeController.getAnalytics);
 router.get("/:id", resumeController.getOne);
 router.delete("/:id", resumeController.remove);
 

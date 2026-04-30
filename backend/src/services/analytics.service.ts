@@ -1,5 +1,6 @@
 import prisma from "../config/prisma";
 import { JobStatus } from "@prisma/client";
+import { getResumeAnalytics } from "./resume.service";
 
 // main analytics
 export const getAnalytics = async (userId: string) => {
@@ -79,6 +80,8 @@ export const getAnalytics = async (userId: string) => {
         responseTimes.length
       : 0;
 
+  const resumeInsights = await getResumeAnalytics(userId);
+
   return {
     totalApplications,
     statusBreakdown,
@@ -86,6 +89,7 @@ export const getAnalytics = async (userId: string) => {
     offerRate: Number(offerRate.toFixed(1)),
     weeklyApplications,
     avgDaysToResponse: Math.round(avgDaysToResponse),
+    resumeInsights,
   };
 };
 

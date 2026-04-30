@@ -1,21 +1,62 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "../api/client";
 import { Sidebar } from "../components/layout/Sidebar";
 
+type ReminderLog = {
+  _id: string;
+  company: string;
+  sentAt: string;
+  nextReminder: string;
+};
+
+const formatDate = (date: string) =>
+  new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(date));
+
 export function Reminder() {
-  const [autoFollowUp, setAutoFollowUp] = useState(true);
-  const [weeklySummary, setWeeklySummary] = useState(true);
+  const [enabled, setEnabled] = useState(true);
   const [staleDays, setStaleDays] = useState(7);
+  const [logs, setLogs] = useState<ReminderLog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  function loadData() {
+    setLoading(true);
+    Promise.all([
+      api.get("/api/v1/reminders"),
+      api.get("/api/v1/reminders/settings"),
+    ])
+      .then(([logsRes, settingsRes]) => {
+        setLogs(logsRes.data.data || []);
+        setEnabled(Boolean(settingsRes.data.data.enabled));
+        setStaleDays(settingsRes.data.data.staleDays);
+      })
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  async function saveSettings(next: { enabled?: boolean; staleDays?: number }) {
+    const updated = {
+      enabled,
+      staleDays,
+      ...next,
+    };
+
+    setEnabled(updated.enabled);
+    setStaleDays(updated.staleDays);
+    await api.patch("/api/v1/reminders/settings", updated);
+  }
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
-
-      {/* Sidebar */}
+    <div className="flex min-h-screen flex-col bg-slate-100 lg:flex-row">
       <Sidebar />
 
-      {/* Main */}
-      <div className="flex-1 p-6 space-y-6">
-
-        {/* Header */}
+      <div className="min-w-0 flex-1 space-y-6 p-4 sm:p-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">
             Reminder Settings
@@ -25,63 +66,32 @@ export function Reminder() {
           </p>
         </div>
 
-        {/* Settings */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm space-y-5">
-
-          {/* Auto Follow-up */}
-          <div className="flex items-center justify-between">
+        <div className="space-y-5 rounded-2xl bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="font-medium text-sm">
-                Auto Follow-up Reminders
-              </div>
+              <div className="text-sm font-medium">Follow-up Reminders</div>
               <div className="text-xs text-slate-500">
                 Get notified when applications need follow-up
               </div>
             </div>
 
             <button
-              onClick={() => setAutoFollowUp(!autoFollowUp)}
-              className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
-                autoFollowUp ? "bg-indigo-600" : "bg-slate-300"
+              onClick={() => saveSettings({ enabled: !enabled })}
+              className={`flex h-6 w-12 items-center rounded-full p-1 transition ${
+                enabled ? "bg-indigo-600" : "bg-slate-300"
               }`}
             >
               <div
-                className={`w-4 h-4 bg-white rounded-full transform transition ${
-                  autoFollowUp ? "translate-x-6" : "translate-x-0"
+                className={`h-4 w-4 rounded-full bg-white transition ${
+                  enabled ? "translate-x-6" : "translate-x-0"
                 }`}
               />
             </button>
           </div>
 
-          {/* Weekly Summary */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="font-medium text-sm">Weekly Summary</div>
-              <div className="text-xs text-slate-500">
-                Receive weekly job search analytics
-              </div>
-            </div>
-
-            <button
-              onClick={() => setWeeklySummary(!weeklySummary)}
-              className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
-                weeklySummary ? "bg-indigo-600" : "bg-slate-300"
-              }`}
-            >
-              <div
-                className={`w-4 h-4 bg-white rounded-full transform transition ${
-                  weeklySummary ? "translate-x-6" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* Stale Days */}
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-medium text-sm">
-                Stale Application Days
-              </div>
+              <div className="text-sm font-medium">Stale Application Days</div>
               <div className="text-xs text-slate-500">
                 Flag applications inactive after this many days
               </div>
@@ -90,99 +100,65 @@ export function Reminder() {
             <div className="flex items-center gap-2">
               <input
                 type="number"
+                min={1}
                 value={staleDays}
-                onChange={(e) => setStaleDays(Number(e.target.value))}
-                className="w-20 px-3 py-2 rounded-xl border border-slate-300 text-sm text-center"
+                onChange={(e) =>
+                  saveSettings({ staleDays: Number(e.target.value) })
+                }
+                className="w-20 rounded-xl border border-slate-300 px-3 py-2 text-center text-sm"
               />
               <span className="text-sm text-slate-500">days</span>
             </div>
           </div>
-
         </div>
 
-        {/* Logs */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-
-          <div className="p-4 border-b">
-            <h3 className="font-semibold text-sm">Reminder Logs</h3>
+        <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+          <div className="border-b p-4">
+            <h3 className="text-sm font-semibold">Reminder Logs</h3>
           </div>
 
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Job</th>
-                <th className="text-left px-4 py-3 font-medium">Type</th>
-                <th className="text-left px-4 py-3 font-medium">Date</th>
-                <th className="text-left px-4 py-3 font-medium">Status</th>
-              </tr>
-            </thead>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead className="bg-slate-50 text-slate-500">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">Company</th>
+                  <th className="px-4 py-3 text-left font-medium">Sent</th>
+                  <th className="px-4 py-3 text-left font-medium">
+                    Next Reminder
+                  </th>
+                </tr>
+              </thead>
 
-            <tbody className="divide-y divide-slate-100">
-
-              <tr className="hover:bg-slate-50">
-                <td className="px-4 py-3">Frontend Dev @ Google</td>
-                <td className="px-4 py-3">
-                  <span className="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full text-xs">
-                    Follow-up
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-slate-500">Apr 20</td>
-                <td className="px-4 py-3">
-                  <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded-full text-xs">
-                    Pending
-                  </span>
-                </td>
-              </tr>
-
-              <tr className="hover:bg-slate-50">
-                <td className="px-4 py-3">UI Engineer @ Apple</td>
-                <td className="px-4 py-3">
-                  <span className="bg-emerald-50 text-emerald-600 px-2 py-1 rounded-full text-xs">
-                    Interview
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-slate-500">Apr 19</td>
-                <td className="px-4 py-3">
-                  <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full text-xs">
-                    Completed
-                  </span>
-                </td>
-              </tr>
-
-              <tr className="hover:bg-slate-50">
-                <td className="px-4 py-3">Senior Dev @ Meta</td>
-                <td className="px-4 py-3">
-                  <span className="bg-rose-50 text-rose-600 px-2 py-1 rounded-full text-xs">
-                    Rejection
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-slate-500">Apr 15</td>
-                <td className="px-4 py-3">
-                  <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full text-xs">
-                    Handled
-                  </span>
-                </td>
-              </tr>
-
-              <tr className="hover:bg-slate-50">
-                <td className="px-4 py-3">Full Stack @ Stripe</td>
-                <td className="px-4 py-3">
-                  <span className="bg-amber-50 text-amber-600 px-2 py-1 rounded-full text-xs">
-                    Offer Review
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-slate-500">Apr 12</td>
-                <td className="px-4 py-3">
-                  <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded-full text-xs">
-                    Pending
-                  </span>
-                </td>
-              </tr>
-
-            </tbody>
-          </table>
+              <tbody className="divide-y divide-slate-100">
+                {loading ? (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-5 text-slate-500">
+                      Loading reminders...
+                    </td>
+                  </tr>
+                ) : logs.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-5 text-slate-500">
+                      No reminder logs yet.
+                    </td>
+                  </tr>
+                ) : (
+                  logs.map((log) => (
+                    <tr key={log._id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3">{log.company}</td>
+                      <td className="px-4 py-3 text-slate-500">
+                        {formatDate(log.sentAt)}
+                      </td>
+                      <td className="px-4 py-3 text-slate-500">
+                        {formatDate(log.nextReminder)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-
       </div>
     </div>
   );

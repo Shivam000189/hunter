@@ -26,6 +26,9 @@ export const upload = async (req: AuthRequest, res: Response) => {
         versionName: result.versionName,
         userId: result.userId,
         uploadedAt: result.uploadedAt,
+        usage: result.totalUsed,
+        interviews: result.interviews,
+        offers: result.offers,
       },
     });
   } catch (err: any) {
@@ -47,7 +50,22 @@ export const getAll = async (req: AuthRequest, res: Response) => {
       url: r.url,
       versionName: r.versionName,
       uploadedAt: r.uploadedAt,
+      usage: r.totalUsed,
+      interviews: r.interviews,
+      offers: r.offers,
+      successRate: r.totalUsed
+        ? Number(((r.interviews / r.totalUsed) * 100).toFixed(1))
+        : 0,
     })),
+  });
+};
+
+export const getAnalytics = async (req: AuthRequest, res: Response) => {
+  const data = await resumeService.getResumeAnalytics(req.userId!);
+
+  res.json({
+    success: true,
+    data,
   });
 };
 
@@ -74,6 +92,12 @@ export const getOne = async (req: AuthRequest, res: Response) => {
       url: resume.url,
       versionName: resume.versionName,
       uploadedAt: resume.uploadedAt,
+      usage: resume.totalUsed,
+      interviews: resume.interviews,
+      offers: resume.offers,
+      successRate: resume.totalUsed
+        ? Number(((resume.interviews / resume.totalUsed) * 100).toFixed(1))
+        : 0,
     },
   });
 };

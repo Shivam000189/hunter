@@ -44,6 +44,7 @@ model Job {
   notes       String?
 
   resumeId    String?
+  resume      Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -85,8 +86,13 @@ model Resume {
 
   userId   String
   user   User @relation(fields: [userId], references: [id])
+  jobs   Job[]
 
   uploadedAt DateTime @default(now())
+
+  totalUsed  Int @default(0)
+  interviews Int @default(0)
+  offers     Int @default(0)
 }
 
 

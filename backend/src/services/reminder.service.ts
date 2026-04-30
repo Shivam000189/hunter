@@ -82,6 +82,18 @@ export const getLogs = async (userId: string) => {
   });
 };
 
+export const getSettings = async (userId: string) => {
+  return prisma.reminderSettings.upsert({
+    where: { userId },
+    update: {},
+    create: {
+      userId,
+      enabled: true,
+      staleDays: 7,
+    },
+  });
+};
+
 // update settings
 export const updateSettings = async (
   userId: string,

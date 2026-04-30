@@ -1,5 +1,3 @@
-import React from "react";
-
 interface Job {
   title: string;
   company: string;

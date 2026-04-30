@@ -1,6 +1,5 @@
 import openai from "../config/openai";
 import prisma from "../config/prisma";
-import { JobStatus } from "@prisma/client";
 
 // sleep helper
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -147,3 +146,162 @@ id: string
 
     return letter;
     };
+
+const parseJsonObject = (content: string) => {
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+
+    if (!jsonMatch) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(jsonMatch[0]);
+    } catch {
+        return null;
+    }
+};
+
+const normalizeWords = (text: string) => {
+    const stopWords = new Set([
+        "and",
+        "the",
+        "with",
+        "for",
+        "from",
+        "that",
+        "this",
+        "are",
+        "you",
+        "your",
+        "will",
+        "have",
+        "has",
+        "our",
+        "job",
+        "role",
+        "work",
+        "team",
+        "experience",
+    ]);
+
+    return Array.from(
+        new Set(
+        text
+            .toLowerCase()
+            .replace(/[^a-z0-9+#.\s-]/g, " ")
+            .split(/\s+/)
+            .map((word) => word.trim())
+            .filter((word) => word.length > 2 && !stopWords.has(word))
+        )
+    );
+};
+
+const keywordMatch = (resumeText: string, jobDescription: string) => {
+    const resumeWords = new Set(normalizeWords(resumeText));
+    const jobKeywords = normalizeWords(jobDescription);
+    const matchedKeywords = jobKeywords.filter((word) => resumeWords.has(word));
+    const missingSkills = jobKeywords.filter((word) => !resumeWords.has(word));
+
+    return {
+        matchScore: jobKeywords.length
+        ? Math.round((matchedKeywords.length / jobKeywords.length) * 100)
+        : 0,
+        matchedKeywords,
+        missingSkills: missingSkills.slice(0, 20),
+    };
+};
+
+export const getResumeFeedback = async (_userId: string, data: any) => {
+    const { resumeText, jobDescription = "" } = data;
+
+    if (!resumeText || typeof resumeText !== "string") {
+        throw { status: 400, message: "resumeText is required" };
+    }
+
+    const prompt = `
+    Analyze this resume${jobDescription ? " against the provided job description" : ""}.
+
+    Return only valid JSON with this shape:
+    {
+      "score": number,
+      "strengths": string[],
+      "weaknesses": string[],
+      "missingKeywords": string[],
+      "suggestions": string[],
+      "atsScore": number
+    }
+
+    Rules:
+    - score and atsScore must be 0-100
+    - keep each array to 3-6 practical items
+    - if a job description is provided, tailor missingKeywords and suggestions to it
+
+    Resume:
+    ${resumeText.slice(0, 4000)}
+
+    Job Description:
+    ${String(jobDescription).slice(0, 2500)}
+    `;
+
+    let content = "";
+
+    try {
+        const response = await generateWithRetry(() =>
+        openai.chat.completions.create({
+            model: "mistralai/mistral-7b-instruct",
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 500,
+        })
+        );
+
+        content = response.choices?.[0]?.message?.content || "";
+    } catch {
+        content = "";
+    }
+
+    const parsed = parseJsonObject(content);
+
+    if (parsed) {
+        return {
+        score: Number(parsed.score ?? parsed.atsScore ?? 0),
+        strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
+        weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
+        missingKeywords: Array.isArray(parsed.missingKeywords)
+            ? parsed.missingKeywords
+            : [],
+        suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+        atsScore: Number(parsed.atsScore ?? parsed.score ?? 0),
+        };
+    }
+
+    const match = jobDescription
+        ? keywordMatch(resumeText, jobDescription)
+        : { matchScore: 70, missingSkills: [], matchedKeywords: [] };
+
+    return {
+        score: match.matchScore,
+        strengths: ["Clear resume text provided", "Relevant experience can be identified"],
+        weaknesses: ["AI analysis unavailable, using keyword fallback"],
+        missingKeywords: match.missingSkills,
+        suggestions: [
+        "Add measurable impact with numbers",
+        "Mirror the most important job description keywords",
+        "Keep bullets specific to outcomes and tools used",
+        ],
+        atsScore: match.matchScore,
+    };
+};
+
+export const getResumeMatchScore = async (_userId: string, data: any) => {
+    const { resumeText, jobDescription } = data;
+
+    if (!resumeText || typeof resumeText !== "string") {
+        throw { status: 400, message: "resumeText is required" };
+    }
+
+    if (!jobDescription || typeof jobDescription !== "string") {
+        throw { status: 400, message: "jobDescription is required" };
+    }
+
+    return keywordMatch(resumeText, jobDescription);
+};

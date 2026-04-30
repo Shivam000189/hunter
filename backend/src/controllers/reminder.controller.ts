@@ -18,6 +18,21 @@ export const getLogs = async (req: AuthRequest, res: Response) => {
   });
 };
 
+export const getSettings = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const settings = await reminderService.getSettings(req.userId!);
+
+  res.json({
+    success: true,
+    data: {
+      staleDays: settings.staleDays,
+      enabled: settings.enabled,
+    },
+  });
+};
+
 // trigger - admin 
 export const trigger = async (req: AuthRequest, res: Response) => {
   const result = await reminderService.triggerReminders();

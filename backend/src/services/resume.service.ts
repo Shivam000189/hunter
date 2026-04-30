@@ -37,6 +37,11 @@ export const getResumes = async (userId: string) => {
   return prisma.resume.findMany({
     where: { userId },
     orderBy: { uploadedAt: "desc" },
+    include: {
+      _count: {
+        select: { jobs: true },
+      },
+    },
   });
 };
 
@@ -60,4 +65,59 @@ export const deleteResume = async (userId: string, id: string) => {
   });
 
   await prisma.resume.delete({ where: { id } });
+};
+
+export const getResumeAnalytics = async (userId: string) => {
+  const resumes = await prisma.resume.findMany({
+    where: { userId },
+    orderBy: [
+      { offers: "desc" },
+      { interviews: "desc" },
+      { totalUsed: "desc" },
+      { uploadedAt: "desc" },
+    ],
+    select: {
+      id: true,
+      versionName: true,
+      url: true,
+      totalUsed: true,
+      interviews: true,
+      offers: true,
+      uploadedAt: true,
+    },
+  });
+
+  const data = resumes.map((resume) => ({
+    _id: resume.id,
+    versionName: resume.versionName,
+    url: resume.url,
+    usage: resume.totalUsed,
+    interviews: resume.interviews,
+    offers: resume.offers,
+    successRate: resume.totalUsed
+      ? Number(((resume.interviews / resume.totalUsed) * 100).toFixed(1))
+      : 0,
+    offerRate: resume.totalUsed
+      ? Number(((resume.offers / resume.totalUsed) * 100).toFixed(1))
+      : 0,
+    uploadedAt: resume.uploadedAt,
+  }));
+
+  return {
+    bestPerformingResume:
+      data.length > 0
+        ? [...data].sort((a, b) => {
+            if (b.successRate !== a.successRate) {
+              return b.successRate - a.successRate;
+            }
+
+            if (b.offers !== a.offers) {
+              return b.offers - a.offers;
+            }
+
+            return b.usage - a.usage;
+          })[0]
+        : null,
+    resumes: data,
+  };
 };

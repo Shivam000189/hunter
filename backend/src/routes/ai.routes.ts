@@ -17,6 +17,8 @@ const aiLimiter = rateLimit({
 });
 
 router.post("/cover-letter", aiLimiter, aiController.generate);
+router.post("/resume-feedback", aiLimiter, aiController.resumeFeedback);
+router.post("/resume-match", aiController.resumeMatch);
 router.get("/cover-letters", aiController.getAll);
 router.get("/cover-letters/:id", aiController.getOne);
 

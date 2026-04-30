@@ -73,3 +73,35 @@ export const getOne = async (req: AuthRequest, res: Response) => {
     });
   }
 };
+
+export const resumeFeedback = async (req: AuthRequest, res: Response) => {
+  try {
+    const data = await aiService.getResumeFeedback(req.userId!, req.body);
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (err: any) {
+    res.status(err.status || 500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const resumeMatch = async (req: AuthRequest, res: Response) => {
+  try {
+    const data = await aiService.getResumeMatchScore(req.userId!, req.body);
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (err: any) {
+    res.status(err.status || 500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};

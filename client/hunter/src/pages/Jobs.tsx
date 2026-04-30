@@ -1,175 +1,295 @@
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from "react";
+import api from "../api/client";
 import { Sidebar } from "../components/layout/Sidebar";
 
-interface Job {
-  title: string;
+type Job = {
+  id?: string;
+  _id?: string;
   company: string;
-  date?: string;
-  desc?: string;
-  tag?: string;
-}
+  role: string;
+  status: "APPLIED" | "INTERVIEW" | "OFFER" | "REJECTED" | string;
+  appliedDate: string;
+  notes?: string | null;
+  jobUrl?: string | null;
+  resumeId?: string | null;
+  resume?: {
+    id: string;
+    versionName: string;
+  } | null;
+};
 
-const data: Record<string, Job[]> = {
-  Applied: [
-    {
-      title: "Frontend Developer",
-      company: "Google",
-      date: "Apr 15, 2026",
-      desc: "Remote position, React/TypeScript stack...",
-      tag: "Follow up",
-    },
-    {
-      title: "UI Engineer",
-      company: "Apple",
-      date: "Apr 12, 2026",
-      desc: "On-site Cupertino, Design Systems...",
-    },
-  ],
-  Interview: [
-    {
-      title: "Senior Developer",
-      company: "Meta",
-      date: "Apr 22, 2026",
-      desc: "Technical round, system design...",
-      tag: "Tomorrow",
-    },
-  ],
-  Offer: [
-    {
-      title: "Full Stack Dev",
-      company: "Stripe",
-      date: "Apr 10, 2026",
-      desc: "$145k + equity, Remote...",
-      tag: "Pending",
-    },
-  ],
-  Rejected: [
-    {
-      title: "Software Engineer",
-      company: "Netflix",
-      date: "Apr 8, 2026",
-      desc: "Position filled internally...",
-    },
-  ],
+type JobForm = {
+  company: string;
+  role: string;
+  jobUrl: string;
+  appliedDate: string;
+  notes: string;
+  resumeId: string;
+};
+
+type ResumeOption = {
+  _id: string;
+  versionName: string;
+};
+
+const statuses = ["APPLIED", "INTERVIEW", "OFFER", "REJECTED"] as const;
+
+const labels: Record<string, string> = {
+  APPLIED: "Applied",
+  INTERVIEW: "Interview",
+  OFFER: "Offer",
+  REJECTED: "Rejected",
 };
 
 const colors: Record<string, string> = {
-  Applied: "bg-indigo-600",
-  Interview: "bg-emerald-500",
-  Offer: "bg-amber-500",
-  Rejected: "bg-rose-500",
+  APPLIED: "bg-indigo-600",
+  INTERVIEW: "bg-emerald-500",
+  OFFER: "bg-amber-500",
+  REJECTED: "bg-rose-500",
 };
 
-const initials = (name: string) => name[0];
+const initialForm: JobForm = {
+  company: "",
+  role: "",
+  jobUrl: "",
+  appliedDate: new Date().toISOString().slice(0, 10),
+  notes: "",
+  resumeId: "",
+};
+
+const getJobId = (job: Job) => job._id || job.id || "";
+
+const formatDate = (date: string) =>
+  new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(
+    new Date(date)
+  );
 
 export function Jobs() {
-  return (
-    <div className="flex min-h-screen bg-slate-100">
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState<JobForm>(initialForm);
+  const [resumes, setResumes] = useState<ResumeOption[]>([]);
 
-      {/* Sidebar */}
+  const groupedJobs = useMemo(
+    () =>
+      statuses.reduce<Record<string, Job[]>>((acc, status) => {
+        acc[status] = jobs.filter((job) => job.status.toUpperCase() === status);
+        return acc;
+      }, {}),
+    [jobs]
+  );
+
+  function loadJobs() {
+    setLoading(true);
+    api
+      .get("/api/v1/jobs", { params: { limit: 100 } })
+      .then((res) => setJobs(res.data.data || []))
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadJobs();
+    api
+      .get("/api/v1/resumes")
+      .then((res) => setResumes(res.data.data || []))
+      .catch(() => setResumes([]));
+  }, []);
+
+  function handleChange(
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    await api.post("/api/v1/jobs", {
+      company: form.company,
+      role: form.role,
+      jobUrl: form.jobUrl || undefined,
+      appliedDate: form.appliedDate,
+      notes: form.notes || undefined,
+      resumeId: form.resumeId || undefined,
+    });
+
+    setForm(initialForm);
+    setShowForm(false);
+    loadJobs();
+  }
+
+  async function updateStatus(job: Job, status: string) {
+    await api.patch(`/api/v1/jobs/${getJobId(job)}/status`, {
+      status: status.toLowerCase(),
+    });
+    loadJobs();
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col bg-slate-100 lg:flex-row">
       <Sidebar />
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-8 py-5 bg-white  border-slate-200">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex flex-col gap-3 border-slate-200 bg-white px-4 py-5 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
           <h2 className="text-xl font-bold text-slate-900">Job Pipeline</h2>
 
-          <button className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 flex items-center gap-2">
+          <button
+            onClick={() => setShowForm((value) => !value)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700 sm:w-auto"
+          >
             <span className="text-lg leading-none">+</span>
             Add Job
           </button>
         </div>
 
-        {/* Board */}
-        <div className="flex-1 overflow-x-auto p-6 bg-white">
-          <div className="grid grid-cols-4 gap-4 min-w-[1000px]">
+        {showForm && (
+          <form
+            onSubmit={handleSubmit}
+            className="grid gap-3 border-y border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-5 lg:px-8"
+          >
+            <input
+              name="company"
+              value={form.company}
+              onChange={handleChange}
+              placeholder="Company"
+              required
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-600"
+            />
+            <input
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+              placeholder="Role"
+              required
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-600"
+            />
+            <input
+              name="appliedDate"
+              type="date"
+              value={form.appliedDate}
+              onChange={handleChange}
+              required
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-600"
+            />
+            <input
+              name="jobUrl"
+              value={form.jobUrl}
+              onChange={handleChange}
+              placeholder="Job URL"
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-600"
+            />
+            <select
+              name="resumeId"
+              value={form.resumeId}
+              onChange={handleChange}
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-600"
+            >
+              <option value="">No resume linked</option>
+              {resumes.map((resume) => (
+                <option key={resume._id} value={resume._id}>
+                  {resume.versionName}
+                </option>
+              ))}
+            </select>
+            <button className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+              Save
+            </button>
+            <textarea
+              name="notes"
+              value={form.notes}
+              onChange={handleChange}
+              placeholder="Notes"
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-600 sm:col-span-2 lg:col-span-5"
+            />
+          </form>
+        )}
 
-            {Object.entries(data).map(([status, jobs]) => (
-              <div key={status} className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-
-                {/* Column Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${colors[status]}`} />
-                    <span className="font-semibold text-slate-800">{status}</span>
-                    <span className="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full">
-                      {jobs.length}
-                    </span>
+        <div className="flex-1 overflow-x-auto bg-white p-4 sm:p-6">
+          {loading ? (
+            <div className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-500">
+              Loading jobs...
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">
+              No job applications yet. Add your first job to start tracking.
+            </div>
+          ) : (
+            <div className="grid min-w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 xl:min-w-[1000px]">
+              {statuses.map((status) => (
+                <div
+                  key={status}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`h-3 w-3 rounded-full ${colors[status]}`} />
+                      <span className="font-semibold text-slate-800">
+                        {labels[status]}
+                      </span>
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                        {groupedJobs[status].length}
+                      </span>
+                    </div>
                   </div>
 
-                  <button className="hover:bg-slate-200 p-1 rounded">
-                    <span className="text-lg leading-none">+</span>
-                  </button>
-                </div>
-
-                {/* Cards */}
-                <div className="space-y-3">
-
-                  {jobs.map((job, i) => (
-                    <div
-                      key={i}
-                      className={`bg-white hover:shadow-lg rounded-2xl p-4 shadow-sm ${
-                        status === "Rejected" ? "opacity-70" : ""
-                      }`}
-                    >
-
-                      {/* Top */}
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-bold">
-                          {initials(job.company)}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">
-                            {job.title}
+                  <div className="space-y-3">
+                    {groupedJobs[status].map((job) => (
+                      <div
+                        key={getJobId(job)}
+                        className="rounded-2xl bg-white p-4 shadow-sm hover:shadow-lg"
+                      >
+                        <div className="mb-3 flex items-start gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 font-bold text-white">
+                            {job.company[0]?.toUpperCase()}
                           </div>
-                          <div className="text-sm text-slate-500">
-                            {job.company}
+
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate font-medium">{job.role}</div>
+                            <div className="text-sm text-slate-500">
+                              {job.company}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="cursor-grab text-slate-400">⋮⋮</div>
-                      </div>
+                        <div className="mb-2 text-xs text-slate-400">
+                          Applied {formatDate(job.appliedDate)}
+                        </div>
 
-                      {/* Meta */}
-                      <div className="text-xs text-slate-400 mb-2">
-                        {status}: {job.date}
-                      </div>
-
-                      <div className="text-sm text-slate-500 line-clamp-2">
-                        {job.desc}
-                      </div>
-
-                      {/* Footer */}
-                      <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <span className="text-xs text-indigo-600 font-medium">
-                          View
-                        </span>
-
-                        {job.tag && (
-                          <span className="text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-700">
-                            {job.tag}
-                          </span>
+                        {job.resume && (
+                          <div className="mb-2 rounded-lg bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700">
+                            {job.resume.versionName}
+                          </div>
                         )}
+
+                        {job.notes && (
+                          <div className="line-clamp-2 text-sm text-slate-500">
+                            {job.notes}
+                          </div>
+                        )}
+
+                        <div className="mt-3 border-t border-slate-100 pt-3">
+                          <select
+                            value={job.status.toUpperCase()}
+                            onChange={(e) => updateStatus(job, e.target.value)}
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700"
+                          >
+                            {statuses.map((item) => (
+                              <option key={item} value={item}>
+                                {labels[item]}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
-
-                    </div>
-                  ))}
-
+                    ))}
+                  </div>
                 </div>
-
-                {/* Drop zone */}
-                <div className="mt-4 border-2 border-dashed border-slate-300 rounded-2xl py-6 text-center text-slate-400 text-sm">
-                  Drop here
-                </div>
-
-              </div>
-            ))}
-
-          </div>
+              ))}
+            </div>
+          )}
         </div>
-
       </div>
     </div>
   );

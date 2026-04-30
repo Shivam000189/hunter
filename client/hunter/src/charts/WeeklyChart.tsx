@@ -9,17 +9,20 @@ import {
   Legend,
 } from "chart.js";
 
-import { weeklyApplications } from "../data/mockAnalytics";
-
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
-export function WeeklyChart() {
+type WeeklyChartProps = {
+  labels: string[];
+  values: number[];
+};
+
+export function WeeklyChart({ labels, values }: WeeklyChartProps) {
   const data = {
-    labels: weeklyApplications.labels,
+    labels,
     datasets: [
       {
         label: "Applications",
-        data: weeklyApplications.data,
+        data: values,
         borderColor: "#4F46E5",
         backgroundColor: "rgba(79,70,229,0.1)",
         tension: 0.4,
@@ -29,5 +32,14 @@ export function WeeklyChart() {
     ],
   };
 
-  return <Line data={data} options={{ plugins: { legend: { display: false } } }} />;
+  return (
+    <Line
+      data={data}
+      options={{
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: { legend: { display: false } },
+      }}
+    />
+  );
 }

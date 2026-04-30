@@ -32,7 +32,11 @@ export function Signup() {
     e.preventDefault();
 
     try {
-        await api.post("/api/auth/register", form);
+        await api.post("/api/auth/register", {
+          name: `${form.firstName} ${form.lastName}`.trim(),
+          email: form.email,
+          password: form.password,
+        });
 
         alert("Account created!");
         navigate("/");
@@ -42,8 +46,8 @@ export function Signup() {
     }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <div className="mockup-screen rounded-2xl p-8 shadow-sm bg-white w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
+      <div className="mockup-screen w-full max-w-md rounded-2xl bg-white p-5 shadow-sm sm:p-8">
         <div className="max-w-sm mx-auto">
           <div className="mb-8 text-center">
             <div className="w-12 h-12 bg-indigo-600 rounded-xl mx-auto mb-4 flex items-center justify-center">
@@ -69,7 +73,7 @@ export function Signup() {
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium mb-1.5">
                   First name
