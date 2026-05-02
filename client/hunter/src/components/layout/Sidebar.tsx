@@ -32,7 +32,7 @@ export function Sidebar() {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 via-sky-500 to-emerald-400 text-white shadow-lg shadow-indigo-500/20">
-              <svg
+              {/* <svg
                 className="h-5 w-5"
                 fill="none"
                 stroke="currentColor"
@@ -44,7 +44,23 @@ export function Sidebar() {
                   strokeWidth="2"
                   d="M13 10V3L4 14h7v7l9-11h-7z"
                 />
-              </svg>
+              </svg> */}
+
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  
+  <rect width="64" height="64" rx="16" fill="#111827"/>
+
+
+  <rect x="16" y="26" width="32" height="20" rx="4" stroke="#60A5FA" stroke-width="2"/>
+  <path d="M24 26V22C24 20.8954 24.8954 20 26 20H38C39.1046 20 40 20.8954 40 22V26" stroke="#60A5FA" stroke-width="2"/>
+
+  
+  <path d="M26 38L32 32L38 38" stroke="#34D399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 32V44" stroke="#34D399" stroke-width="2" stroke-linecap="round"/>
+
+  
+  <circle cx="48" cy="16" r="3" fill="#FBBF24"/>
+</svg>
             </div>
 
             <div>
