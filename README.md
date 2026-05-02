@@ -211,45 +211,7 @@ Frontend will run on:
 http://localhost:5173
 ```
 
-## Build For Production
 
-Build backend:
-
-```bash
-cd backend
-npm run build
-npm start
-```
-
-Build frontend:
-
-```bash
-cd client/hunter
-npm run build
-npm run preview
-```
-
-## Deployment Notes
-
-The current deployed frontend is:
-
-```text
-https://hunter-orcin.vercel.app/
-```
-
-For backend deployment, set the frontend URL in the backend environment:
-
-```env
-CORS_ORIGINS=https://hunter-orcin.vercel.app
-```
-
-For frontend deployment, set the backend API URL:
-
-```env
-VITE_API_URL=https://your-backend-url.com
-```
-
-Do not include a trailing slash in these URLs.
 
 ## Author
 
