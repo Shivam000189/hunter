@@ -48,7 +48,7 @@ export function Sidebar() {
             </div>
 
             <div>
-              <div className="font-bold">AI Job Tracker</div>
+              <div className="font-bold">Hunter</div>
               <div className="text-xs text-slate-500">Resume Intelligence</div>
             </div>
           </div>

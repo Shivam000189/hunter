@@ -47,3 +47,26 @@ body {
   border-collapse: separate;
   border-spacing: 0;
 }
+
+
+* { font-family: 'Inter', system-ui, sans-serif; }
+  body { background-color: #0F172A; color: #0F172A; }
+  .artboard { background: #E2E8F0; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transition: transform 0.3s ease; }
+  .artboard:hover { transform: translateY(-4px); }
+  .mockup-screen { background: #F8FAFC; min-height: 100%; }
+  .color-swatch { transition: transform 0.2s ease; }
+  .color-swatch:hover { transform: scale(1.05); }
+  .sidebar-nav { transition: all 0.2s ease; }
+  .sidebar-nav:hover { background: rgba(255,255,255,0.05); }
+  .kanban-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .kanban-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+  .drag-handle { cursor: grab; }
+  .toggle-switch { position: relative; width: 44px; height: 24px; background: #CBD5E1; border-radius: 12px; transition: background 0.2s; cursor: pointer; }
+  .toggle-switch.active { background: #4F46E5; }
+  .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .toggle-switch.active::after { transform: translateX(20px); }
+  .fade-in { animation: fadeIn 0.5s ease forwards; opacity: 0; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .landing-gradient { background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 50%, #FDF4FF 100%); }
+  .feature-card { transition: all 0.3s ease; }
+  .feature-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }

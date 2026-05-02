@@ -9,6 +9,7 @@ import { AiCoverLetter } from "./pages/AiCoverLetter";
 import { Resume } from "./pages/Resume";
 import { Analytics } from "./pages/Analytics";
 import { Reminder } from "./pages/Reminer";
+import { Hunter } from "./pages/Hunter";
 
 
 export default function App() {
@@ -16,7 +17,8 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Hunter />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
           <Route
