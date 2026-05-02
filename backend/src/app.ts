@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import type { NextFunction, Request, Response } from "express";
+import { env, isProduction } from "./config/env";
 import authRoutes from "./routes/auth.routes";
 import jobRoutes from "./routes/job.routes";
 import aiRoutes from "./routes/ai.routes";
@@ -7,19 +9,27 @@ import resumeRoutes from "./routes/resume.routes";
 import analyticsRoutes from "./routes/analytics.routes";
 import reminderRoutes from "./routes/reminder.routes";
 
-
-
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
 
+      if (!isProduction && env.corsOrigins.length === 0) {
+        return callback(null, true);
+      }
 
+      if (env.corsOrigins.includes(origin)) {
+        return callback(null, true);
+      }
 
-
-
-
-
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
+app.use(express.json({ limit: "1mb" }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/jobs", jobRoutes);
@@ -28,12 +38,19 @@ app.use("/api/v1/resumes", resumeRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/reminders", reminderRoutes);
 
-
 app.get("/", (_req, res) => {
   res.send("API running...");
 });
 
-app.use((err: any, req: any, res: any, next: any) => {
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);
 
   res.status(err.status || 500).json({
