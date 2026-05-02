@@ -58,3 +58,47 @@ Use this path for deployment health checks:
 7. Add all required environment variables.
 8. Deploy the service.
 9. After deploy, test `https://your-backend.onrender.com/health`.
+
+## Fix Prisma P3005 On First Deploy
+
+If deploy fails with:
+
+```text
+Error: P3005
+The database schema is not empty.
+```
+
+Prisma found existing tables in the production database, but the `_prisma_migrations`
+table does not know which migrations have already been applied.
+
+Use one of these fixes:
+
+### Option A: Empty Database
+
+Use this if you do not need any data in the production database yet.
+
+1. Open your database provider dashboard.
+2. Delete/reset the database schema.
+3. Redeploy the backend.
+
+`npm run start:prod` will run `prisma migrate deploy` and create the schema cleanly.
+
+### Option B: Keep Existing Data
+
+Use this if the production database already has data you want to keep.
+
+Run these commands once against the production `DATABASE_URL`, replacing the URL
+with your real Neon/Render/Supabase connection string:
+
+```bash
+npx prisma migrate resolve --applied 20260414182628_init
+npx prisma migrate resolve --applied 20260417140333_init
+npx prisma migrate resolve --applied 20260419181451_add_jobs
+npx prisma migrate resolve --applied 20260420122807_add_cover_letters
+npx prisma migrate resolve --applied 20260420143513_add_resumes
+npx prisma migrate resolve --applied 20260420170713_add_reminders
+npx prisma migrate resolve --applied 20260420171805_add_reminders
+npx prisma migrate resolve --applied 20260430210000_resume_intelligence
+```
+
+After that, redeploy the backend.

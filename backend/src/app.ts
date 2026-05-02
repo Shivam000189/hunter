@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import type { NextFunction, Request, Response } from "express";
-import { env, isProduction } from "./config/env";
+import { env } from "./config/env";
 import authRoutes from "./routes/auth.routes";
 import jobRoutes from "./routes/job.routes";
 import aiRoutes from "./routes/ai.routes";
@@ -16,11 +16,13 @@ app.use(
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
 
-      if (!isProduction && env.corsOrigins.length === 0) {
+      if (env.corsOrigins.length === 0) {
         return callback(null, true);
       }
 
-      if (env.corsOrigins.includes(origin)) {
+      const normalizedOrigin = origin.replace(/\/$/, "");
+
+      if (env.corsOrigins.includes(normalizedOrigin)) {
         return callback(null, true);
       }
 
