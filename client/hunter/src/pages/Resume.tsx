@@ -175,7 +175,7 @@ export function Resume() {
               onChange={handleFileChange}
               className="rounded-xl border border-slate-300 px-4 py-2 text-sm"
             />
-            <button className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-medium text-white hover:bg-indigo-700 sm:col-span-2">
+            <button className="rounded-xl bg-[#191919] px-4 py-3 text-sm font-medium text-white hover:bg-[#2d2d2b] sm:col-span-2">
               Upload
             </button>
           </div>
@@ -207,7 +207,7 @@ export function Resume() {
                   </div>
 
                   {resume._id === bestResumeId && resume.usage > 0 && (
-                    <span className="shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                    <span className="shrink-0 rounded-full bg-[#ece6da] px-2.5 py-1 text-xs font-semibold text-[#7a6541]">
                       Best Performing
                     </span>
                   )}
@@ -241,7 +241,7 @@ export function Resume() {
                     href={resume.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-sm font-medium text-indigo-600 hover:underline"
+                  className="text-sm font-medium text-[#5f766d] hover:underline"
                   >
                     View
                   </a>
@@ -277,7 +277,7 @@ export function Resume() {
                 <button
                   type="button"
                   onClick={analyzeResume}
-                  className="rounded-xl bg-indigo-600 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                  className="rounded-xl bg-[#191919] py-2 text-sm font-medium text-white hover:bg-[#2d2d2b]"
                 >
                   {aiLoading === "feedback" ? "Analyzing..." : "Analyze Resume"}
                 </button>
@@ -298,15 +298,15 @@ export function Resume() {
             {feedback ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl bg-indigo-50 p-3">
-                    <div className="text-xs text-indigo-700">Score</div>
-                    <div className="text-2xl font-bold text-indigo-900">
+                  <div className="rounded-xl bg-[#e7eaef] p-3">
+                    <div className="text-xs text-[#5f6d82]">Score</div>
+                    <div className="text-2xl font-bold text-[#191919]">
                       {feedback.score}
                     </div>
                   </div>
-                  <div className="rounded-xl bg-emerald-50 p-3">
-                    <div className="text-xs text-emerald-700">ATS Score</div>
-                    <div className="text-2xl font-bold text-emerald-900">
+                  <div className="rounded-xl bg-[#e4ebea] p-3">
+                    <div className="text-xs text-[#5f766d]">ATS Score</div>
+                    <div className="text-2xl font-bold text-[#191919]">
                       {feedback.atsScore}
                     </div>
                   </div>

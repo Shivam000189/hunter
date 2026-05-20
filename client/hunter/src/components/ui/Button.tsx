@@ -7,7 +7,7 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 export default function Button({ children, className = "", ...props }: ButtonProps) {
   return (
     <button
-      className={`w-full py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm ${className}`}
+      className={`hunter-primary-btn py-3 font-medium shadow-sm ${className}`}
       {...props}
     >
       {children}

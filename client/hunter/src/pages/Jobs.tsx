@@ -42,10 +42,10 @@ const labels: Record<string, string> = {
 };
 
 const colors: Record<string, string> = {
-  APPLIED: "bg-indigo-600",
-  INTERVIEW: "bg-emerald-500",
-  OFFER: "bg-amber-500",
-  REJECTED: "bg-rose-500",
+  APPLIED: "bg-[#7e8d98]",
+  INTERVIEW: "bg-[#8da89a]",
+  OFFER: "bg-[#c8aa78]",
+  REJECTED: "bg-[#b79192]",
 };
 
 const initialForm: JobForm = {
@@ -137,7 +137,7 @@ export function Jobs() {
 
           <button
             onClick={() => setShowForm((value) => !value)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700 sm:w-auto"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#191919] px-4 py-2 font-medium text-white hover:bg-[#2d2d2b] sm:w-auto"
           >
             <span className="text-lg leading-none">+</span>
             Add Job
@@ -258,7 +258,7 @@ export function Jobs() {
                         </div>
 
                         {job.resume && (
-                          <div className="mb-2 rounded-lg bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700">
+                          <div className="mb-2 rounded-lg bg-[#e7eaef] px-2 py-1 text-xs font-medium text-[#5f6d82]">
                             {job.resume.versionName}
                           </div>
                         )}

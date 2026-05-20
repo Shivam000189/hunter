@@ -245,7 +245,7 @@ export function Analytics() {
                         </div>
                         <div className="h-2 overflow-hidden rounded-full bg-slate-100">
                           <div
-                            className="h-full rounded-full bg-indigo-600"
+                            className="h-full rounded-full bg-[#6f7f76]"
                             style={{
                               width: `${(resume.usage / maxResumeUsage) * 100}%`,
                             }}

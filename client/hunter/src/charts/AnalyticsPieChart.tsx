@@ -19,7 +19,9 @@ export function AnalyticsPieChart({ labels, values }: AnalyticsPieChartProps) {
     datasets: [
       {
         data: values,
-        backgroundColor: ["#4F46E5", "#10B981", "#F59E0B", "#F43F5E"],
+        backgroundColor: ["#7E8D98", "#8DA89A", "#C8AA78", "#B79192"],
+        borderColor: ["#F4F4F3"],
+        borderWidth: 6,
       },
     ],
   };
@@ -31,6 +33,13 @@ export function AnalyticsPieChart({ labels, values }: AnalyticsPieChartProps) {
         cutout: "55%",
         maintainAspectRatio: false,
         responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              color: "rgba(25,25,25,0.62)",
+            },
+          },
+        },
       }}
     />
   );

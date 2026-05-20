@@ -145,7 +145,7 @@ export function AiCoverLetter() {
                   </select>
                 </div>
 
-                <button className="w-full rounded-xl bg-indigo-600 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700">
+                <button className="w-full rounded-xl bg-[#191919] py-2 text-sm font-medium text-white transition-colors hover:bg-[#2d2d2b]">
                   {loading ? "Generating..." : "Generate"}
                 </button>
               </div>

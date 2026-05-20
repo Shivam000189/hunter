@@ -21,8 +21,8 @@ export function AnalyticsLineChart({ labels, values }: AnalyticsLineChartProps) 
       {
         label: "Response Time",
         data: values,
-        borderColor: "#4F46E5",
-        backgroundColor: "rgba(79,70,229,0.1)",
+        borderColor: "#7E8D98",
+        backgroundColor: "rgba(126,141,152,0.16)",
         fill: true,
         tension: 0.4,
         pointRadius: 3,
@@ -37,6 +37,16 @@ export function AnalyticsLineChart({ labels, values }: AnalyticsLineChartProps) 
         maintainAspectRatio: false,
         responsive: true,
         plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            grid: { color: "rgba(25,25,25,0.06)" },
+            ticks: { color: "rgba(25,25,25,0.54)" },
+          },
+          y: {
+            grid: { color: "rgba(25,25,25,0.06)" },
+            ticks: { color: "rgba(25,25,25,0.54)" },
+          },
+        },
       }}
     />
   );

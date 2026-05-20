@@ -23,8 +23,8 @@ export function WeeklyChart({ labels, values }: WeeklyChartProps) {
       {
         label: "Applications",
         data: values,
-        borderColor: "#4F46E5",
-        backgroundColor: "rgba(79,70,229,0.1)",
+        borderColor: "#6F7F76",
+        backgroundColor: "rgba(111,127,118,0.14)",
         tension: 0.4,
         fill: true,
         pointRadius: 4,
@@ -39,6 +39,16 @@ export function WeeklyChart({ labels, values }: WeeklyChartProps) {
         maintainAspectRatio: false,
         responsive: true,
         plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            grid: { color: "rgba(25,25,25,0.06)" },
+            ticks: { color: "rgba(25,25,25,0.54)" },
+          },
+          y: {
+            grid: { color: "rgba(25,25,25,0.06)" },
+            ticks: { color: "rgba(25,25,25,0.54)" },
+          },
+        },
       }}
     />
   );

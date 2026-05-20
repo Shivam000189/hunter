@@ -31,7 +31,7 @@ export function Sidebar() {
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 via-sky-500 to-emerald-400 text-white shadow-lg shadow-indigo-500/20">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#191919] text-white shadow-lg shadow-black/10">
               {/* <svg
                 className="h-5 w-5"
                 fill="none"
@@ -48,18 +48,18 @@ export function Sidebar() {
 
               <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   
-  <rect width="64" height="64" rx="16" fill="#111827"/>
+  <rect width="64" height="64" rx="16" fill="#191919"/>
 
 
-  <rect x="16" y="26" width="32" height="20" rx="4" stroke="#60A5FA" stroke-width="2"/>
-  <path d="M24 26V22C24 20.8954 24.8954 20 26 20H38C39.1046 20 40 20.8954 40 22V26" stroke="#60A5FA" stroke-width="2"/>
-
-  
-  <path d="M26 38L32 32L38 38" stroke="#34D399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M32 32V44" stroke="#34D399" stroke-width="2" stroke-linecap="round"/>
+  <rect x="16" y="26" width="32" height="20" rx="4" stroke="#DDE7F8" stroke-width="2"/>
+  <path d="M24 26V22C24 20.8954 24.8954 20 26 20H38C39.1046 20 40 20.8954 40 22V26" stroke="#DDE7F8" stroke-width="2"/>
 
   
-  <circle cx="48" cy="16" r="3" fill="#FBBF24"/>
+  <path d="M26 38L32 32L38 38" stroke="#CCE3D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 32V44" stroke="#CCE3D4" stroke-width="2" stroke-linecap="round"/>
+
+  
+  <circle cx="48" cy="16" r="3" fill="#D8B56A"/>
 </svg>
             </div>
 
@@ -70,7 +70,7 @@ export function Sidebar() {
           </div>
 
           <div className="flex items-center gap-2 lg:hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-sky-400 text-sm font-bold text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#6f7f76] text-sm font-bold text-white">
               {user?.name?.slice(0, 2).toUpperCase() || "U"}
             </div>
           </div>
@@ -84,7 +84,7 @@ export function Sidebar() {
               className={({ isActive }) =>
                 `shrink-0 rounded-xl px-3 py-2 text-sm font-medium transition ${
                   isActive
-                    ? "bg-gradient-to-r from-indigo-600 to-sky-500 text-white shadow-md shadow-indigo-500/20"
+                    ? "bg-[#191919] text-white shadow-md shadow-black/10"
                     : "text-slate-600 hover:bg-white/70 hover:text-slate-950"
                 }`
               }
@@ -95,7 +95,7 @@ export function Sidebar() {
         </nav>
 
         <div className="hidden items-center gap-3 rounded-2xl border border-white/40 bg-white/45 px-3 py-2 lg:flex">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-sky-400 text-sm font-bold text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#6f7f76] text-sm font-bold text-white">
             {user?.name?.slice(0, 2).toUpperCase() || "U"}
           </div>
 

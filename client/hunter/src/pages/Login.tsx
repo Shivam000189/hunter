@@ -47,7 +47,7 @@ export function Login() {
     }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
+    <div className="auth-shell flex min-h-screen items-center justify-center bg-slate-100 p-4">
       <div className="mockup-screen w-full max-w-md rounded-2xl bg-white p-5 shadow-sm sm:p-8">
         <div className="max-w-sm mx-auto">
           <div className="mb-8 text-center">

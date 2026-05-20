@@ -78,7 +78,7 @@ export function Reminder() {
             <button
               onClick={() => saveSettings({ enabled: !enabled })}
               className={`flex h-6 w-12 items-center rounded-full p-1 transition ${
-                enabled ? "bg-indigo-600" : "bg-slate-300"
+                enabled ? "bg-[#191919]" : "bg-slate-300"
               }`}
             >
               <div
@@ -105,7 +105,7 @@ export function Reminder() {
                 onChange={(e) =>
                   saveSettings({ staleDays: Number(e.target.value) })
                 }
-                className="w-20 rounded-xl border border-slate-300 px-3 py-2 text-center text-sm"
+                className="w-20 rounded-xl border border-slate-300 bg-white px-3 py-2 text-center text-sm"
               />
               <span className="text-sm text-slate-500">days</span>
             </div>

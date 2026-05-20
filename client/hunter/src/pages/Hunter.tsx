@@ -1,262 +1,308 @@
 import { useNavigate } from "react-router-dom";
 
+const features = [
+  {
+    title: "AI Cover Letters",
+    description:
+      "Generate tailored cover letters in seconds using the data Hunter already helps you organize.",
+    tone: "bg-[#e4ebea] text-[#5a7265]",
+  },
+  {
+    title: "Kanban Tracking",
+    description:
+      "Visualize every application stage in a clear board so your search stays structured and easy to manage.",
+    tone: "bg-[#e7eaef] text-[#5f6d82]",
+  },
+  {
+    title: "Smart Analytics",
+    description:
+      "Review response patterns, interview progress, and search momentum with a cleaner visual summary.",
+    tone: "bg-[#ece6da] text-[#8a6f45]",
+  },
+];
+
+const steps = [
+  {
+    number: "1",
+    title: "Add Jobs",
+    description:
+      "Save roles quickly and keep your job search details organized in one place from the start.",
+  },
+  {
+    number: "2",
+    title: "Track and Create",
+    description:
+      "Move applications through stages, generate AI cover letters, and stay on top of next actions.",
+  },
+  {
+    number: "3",
+    title: "Improve Faster",
+    description:
+      "Use Hunter’s insights and reminders to follow up better and focus on what gets results.",
+  },
+];
+
 export function Hunter() {
-   const navigate = useNavigate();
+  const navigate = useNavigate();
 
   return (
-        <div className="artboard">
-            <div className="landing-gradient">
-                
-                <nav className="flex items-center justify-between px-8 py-4 bg-white/60 backdrop-blur-md sticky top-0 border-b border-white/40">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
-                            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
- 
-                                <rect width="64" height="64" rx="16" fill="#111827"/>
-
-                                
-                                <rect x="16" y="26" width="32" height="20" rx="4" stroke="#60A5FA" stroke-width="2"/>
-                                <path d="M24 26V22C24 20.8954 24.8954 20 26 20H38C39.1046 20 40 20.8954 40 22V26" stroke="#60A5FA" stroke-width="2"/>
-
-                                
-                                <path d="M26 38L32 32L38 38" stroke="#34D399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M32 32V44" stroke="#34D399" stroke-width="2" stroke-linecap="round"/>
-
-
-                                <circle cx="48" cy="16" r="3" fill="#FBBF24"/>
-                            </svg>
-                        </div>
-                        <span className="font-bold text-lg">Hunter </span>
-                    </div>
-                    <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-                        <a href="#" className="hover:text-indigo-600 transition-colors">Features</a>
-                        <a href="#" className="hover:text-indigo-600 transition-colors">How it Works</a>
-                        <a href="#" className="hover:text-indigo-600 transition-colors">Pricing</a>
-                        <a href="#" className="hover:text-indigo-600 transition-colors">Testimonials</a>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button onClick={()=> {navigate('/login')}} className="text-slate-600 font-medium text-sm hover:text-indigo-600 transition-colors px-4 py-2">Sign In</button>
-                        <button onClick={()=> {navigate('/signup')}} className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">Get Started</button>
-                    </div>
-                </nav>
-
-                
-                <div className="relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-indigo-100/40 to-transparent rounded-l-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-200/30 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
-                    
-                    <div className="px-8 py-16 text-center max-w-5xl mx-auto relative z-10">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white rounded-full border border-slate-200 shadow-sm text-sm font-medium text-slate-600 mb-6">
-                            <span className="flex h-2 w-2 relative">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
-                            </span>
-                            Now with AI-Powered Cover Letters
-                        </div>
-                        <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-tight mb-6">
-                            Land Your <span className="text-indigo-600">Dream Job</span>
-                            3x Faster with AI
-                        </h1>
-                        <p className="text-xl text-slate-500 max-w-2xl mx-auto mb-10">
-                            Stop juggling spreadsheets. Track applications, generate personalized cover letters, and get data-driven insights to optimize your job search.
-                        </p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-                            <button onClick={()=> {navigate('/login')}} className="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white rounded-2xl font-semibold text-lg hover:bg-indigo-700 transition-all hover:shadow-lg hover:shadow-indigo-200 flex items-center justify-center gap-2">
-                                Start Tracking for Free
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                            </button>
-                            <button className="w-full sm:w-auto px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-2xl font-semibold text-lg hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
-                                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                Watch Demo
-                            </button>
-                        </div>
-
-                        
-                        <div className="relative max-w-4xl mx-auto">
-                            <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-                                <div className="h-8 bg-slate-100 flex items-center px-4 gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-rose-400"></div>
-                                    <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-                                    <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
-                                    <div className="ml-4 w-64 h-5 bg-white rounded-md border border-slate-200"></div>
-                                </div>
-                                <div className="p-6 grid grid-cols-12 gap-4">
-                                    <div className="col-span-3 space-y-3">
-                                        <div className="h-8 bg-indigo-100 rounded-lg w-3/4"></div>
-                                        <div className="h-4 bg-slate-100 rounded w-1/2"></div>
-                                        <div className="h-4 bg-slate-100 rounded w-1/2"></div>
-                                    </div>
-                                    <div className="col-span-9 grid grid-cols-3 gap-3">
-                                        <div className="bg-indigo-50 rounded-xl p-4 h-24"></div>
-                                        <div className="bg-emerald-50 rounded-xl p-4 h-24"></div>
-                                        <div className="bg-purple-50 rounded-xl p-4 h-24"></div>
-                                        <div className="bg-white border border-slate-100 shadow-sm rounded-xl col-span-2 h-48 p-4">
-                                            <div className="h-full flex items-end gap-3 pb-2">
-                                                <div className="w-full bg-indigo-200 rounded-t-lg h-[40%]"></div>
-                                                <div className="w-full bg-indigo-300 rounded-t-lg h-[60%]"></div>
-                                                <div className="w-full bg-indigo-400 rounded-t-lg h-[45%]"></div>
-                                                <div className="w-full bg-indigo-500 rounded-t-lg h-[80%]"></div>
-                                                <div className="w-full bg-indigo-600 rounded-t-lg h-[70%]"></div>
-                                            </div>
-                                        </div>
-                                        <div className="bg-white border border-slate-100 shadow-sm rounded-xl h-48 p-4 flex items-center justify-center">
-                                            <div className="w-24 h-24 rounded-full border-8 border-emerald-500"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="absolute -bottom-4 -right-4 bg-white rounded-xl shadow-lg border border-slate-100 p-4 flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-xs">✓</div>
-                                <div>
-                                    <div className="text-sm font-semibold text-slate-800">Offer Received!</div>
-                                    <div className="text-xs text-slate-500">Frontend Dev at Stripe</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                
-                <div className="px-8 py-20 bg-white">
-                    <div className="max-w-6xl mx-auto">
-                        <div className="text-center mb-16">
-                            <h2 className="text-3xl font-bold text-slate-900 mb-4">Everything You Need</h2>
-                            <p className="text-slate-500 max-w-xl mx-auto">Powerful features designed to streamline every stage of your job search.</p>
-                        </div>
-                        <div className="grid md:grid-cols-3 gap-8">
-                            <div className="feature-card bg-slate-50 rounded-2xl p-8 border border-slate-100">
-                                <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-6">
-                                    <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                                </div>
-                                <h3 className="text-xl font-bold mb-3">AI Cover Letters</h3>
-                                <p className="text-slate-500 leading-relaxed">Generate tailored cover letters in seconds. Our AI matches your resume to the job description perfectly.</p>
-                            </div>
-                            <div className="feature-card bg-slate-50 rounded-2xl p-8 border border-slate-100">
-                                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-6">
-                                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-                                </div>
-                                <h3 className="text-xl font-bold mb-3">Kanban Tracking</h3>
-                                <p className="text-slate-500 leading-relaxed">Visualize your pipeline with drag-and-drop boards. Never lose track of an application again.</p>
-                            </div>
-                            <div className="feature-card bg-slate-50 rounded-2xl p-8 border border-slate-100">
-                                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-6">
-                                    <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
-                                </div>
-                                <h3 className="text-xl font-bold mb-3">Smart Analytics</h3>
-                                <p className="text-slate-500 leading-relaxed">Data-driven insights to optimize your search strategy. Track response rates and interview conversion.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                
-                <div className="px-8 py-20 bg-slate-50 border-y border-slate-100">
-                    <div className="max-w-6xl mx-auto">
-                        <div className="text-center mb-16">
-                            <h2 className="text-3xl font-bold text-slate-900 mb-4">How It Works</h2>
-                            <p className="text-slate-500">Get started in three simple steps.</p>
-                        </div>
-                        <div className="grid md:grid-cols-3 gap-8 relative">
-                            <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
-                            <div className="text-center relative z-10">
-                                <div className="w-16 h-16 bg-indigo-600 rounded-2xl mx-auto mb-6 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-indigo-200">1</div>
-                                <h3 className="text-xl font-bold mb-2">Add Jobs</h3>
-                                <p className="text-slate-500 px-4">Quickly add roles via browser extension or manual entry. Auto-fill company details.</p>
-                            </div>
-                            <div className="text-center relative z-10">
-                                <div className="w-16 h-16 bg-white border-2 border-indigo-600 rounded-2xl mx-auto mb-6 flex items-center justify-center text-indigo-600 text-2xl font-bold shadow-sm">2</div>
-                                <h3 className="text-xl font-bold mb-2">Track & AI</h3>
-                                <p className="text-slate-500 px-4">Move cards through stages. Use AI to generate documents and set reminders.</p>
-                            </div>
-                            <div className="text-center relative z-10">
-                                <div className="w-16 h-16 bg-white border-2 border-slate-300 rounded-2xl mx-auto mb-6 flex items-center justify-center text-slate-500 text-2xl font-bold shadow-sm">3</div>
-                                <h3 className="text-xl font-bold mb-2">Get Hired</h3>
-                                <p className="text-slate-500 px-4">Analyze what works, follow up on time, and land the offer. It's that simple.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                
-                {/* <div className="px-8 py-20 bg-white">
-                    <div className="max-w-6xl mx-auto">
-                        <h2 className="text-3xl font-bold text-center mb-12">Loved by Job Seekers</h2>
-                        <div className="grid md:grid-cols-3 gap-8">
-                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                                <div className="flex gap-1 mb-4">
-                                    <span className="text-amber-400">★</span><span className="text-amber-400">★</span><span className="text-amber-400">★</span><span className="text-amber-400">★</span><span className="text-amber-400">★</span>
-                                </div>
-                                <p className="text-slate-600 mb-6">"The Kanban view is a game changer. I finally feel organized in my chaotic job search."</p>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-indigo-200 rounded-full"></div>
-                                    <div>
-                                        <div className="font-semibold text-sm">Sarah Chen</div>
-                                        <div className="text-xs text-slate-500">Hired at Google</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                                <div className="flex gap-1 mb-4">
-                                    <span className="text-amber-400">★</span><span className="text-amber-400">★</span><span className="text-amber-400">★</span><span className="text-amber-400">★</span><span className="text-amber-400">★</span>
-                                </div>
-                                <p className="text-slate-600 mb-6">"AI cover letters saved me hours. Highly recommend for anyone applying to many roles."</p>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-emerald-200 rounded-full"></div>
-                                    <div>
-                                        <div className="font-semibold text-sm">Marcus Johnson</div>
-                                        <div className="text-xs text-slate-500">Hired at Stripe</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                                <div className="flex gap-1 mb-4">
-                                    <span className="text-amber-400">★</span><span className="text-amber-400">★</span><span className="text-amber-400">★</span><span className="text-amber-400">★</span><span className="text-amber-400">★</span>
-                                </div>
-                                <p className="text-slate-600 mb-6">"Analytics showed me which days to apply for best response rates. Landed 3 offers!"</p>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-amber-200 rounded-full"></div>
-                                    <div>
-                                        <div className="font-semibold text-sm">Priya Patel</div>
-                                        <div className="text-xs text-slate-500">Hired at Meta</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div> */}
-
-                <div className="px-8 py-24 bg-indigo-600 text-white text-center relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-30"></div>
-                    <div className="relative z-10 max-w-2xl mx-auto">
-                        <h2 className="text-4xl font-bold mb-4">Ready to Level Up Your Search?</h2>
-                        <p className="text-indigo-100 text-lg mb-8">Join 50,000+ job seekers landing offers faster.</p>
-                        <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                            <input type="email" placeholder="Enter your email" className="flex-1 px-4 py-3 rounded-xl text-slate-900 outline-none bg-white focus:ring-2 focus:ring-white/50" />
-                            <button onClick={()=> {navigate('/signup')}} className="px-6 py-3 bg-white text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition-colors">Get Started</button>
-                        </div>
-                        <p className="text-xs text-indigo-200 mt-4">No credit card required. Free plan available.</p>
-                    </div>
-                </div>
-
-                
-                <footer className="bg-slate-900 text-slate-400 py-12 px-8">
-                    <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center">
-                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                            </div>
-                            <span className="text-white font-bold">Hunter</span>
-                        </div>
-                        <div className="flex gap-8 text-sm">
-                            <a href="#" className="hover:text-white">Privacy</a>
-                            <a href="#" className="hover:text-white">Terms</a>
-                            <a href="https://github.com/Shivam000189/hunter" className="hover:text-white">Support</a>
-                            <a href="https://x.com/shivam_s0" className="hover:text-white">Twitter</a>
-                        </div>
-                        <div className="text-sm">© 2026 Hunter</div>
-                    </div>
-                </footer>
+    <div className="hunter-landing min-h-screen bg-[#f4f4f3] text-[#191919]">
+      <div className="hunter-mesh pointer-events-none fixed inset-0 opacity-70" />
+      <div className="relative">
+        <nav className="sticky top-0 z-30 border-b border-black/6 bg-[#f4f4f3]/88 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 md:px-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#191919] shadow-[0_14px_30px_rgba(25,25,25,0.14)]">
+                <svg width="22" height="22" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="64" height="64" rx="16" fill="#191919" />
+                  <rect x="16" y="26" width="32" height="20" rx="4" stroke="#dde7f8" strokeWidth="2" />
+                  <path d="M24 26V22C24 20.8954 24.8954 20 26 20H38C39.1046 20 40 20.8954 40 22V26" stroke="#dde7f8" strokeWidth="2" />
+                  <path d="M26 38L32 32L38 38" stroke="#cce3d4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M32 32V44" stroke="#cce3d4" strokeWidth="2" strokeLinecap="round" />
+                  <circle cx="48" cy="16" r="3" fill="#d8b56a" />
+                </svg>
+              </div>
+              <div>
+                <div className="font-serif text-2xl font-bold italic leading-none">Hunter</div>
+                <div className="text-[10px] uppercase tracking-[0.22em] text-black/40">Job Search Command</div>
+              </div>
             </div>
-        </div>
+
+            <div className="hidden items-center gap-6 text-sm font-medium text-black/58 md:flex">
+              <a href="#features" className="transition hover:text-black">Features</a>
+              <a href="#workflow" className="transition hover:text-black">How it works</a>
+              <a href="#launch" className="transition hover:text-black">Get started</a>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate("/login")}
+                className="rounded-full px-4 py-2 text-sm font-medium text-black/62 transition hover:bg-white/70"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => navigate("/signup")}
+                className="rounded-full bg-[#191919] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-black"
+              >
+                Get Started
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        <section className="relative overflow-hidden px-5 pb-18 pt-14 md:px-8 md:pb-24 md:pt-18">
+          <div className="hunter-orb hunter-orb-left" />
+          <div className="hunter-orb hunter-orb-right" />
+
+          <div className="mx-auto max-w-5xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white/82 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-black/55 shadow-[0_12px_24px_rgba(25,25,25,0.05)]">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#8ba29a] opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#5f766d]" />
+              </span>
+              AI-powered job search workflow
+            </div>
+
+            <h1 className="mx-auto mt-7 max-w-4xl font-serif text-4xl font-bold leading-[1.04] tracking-tight text-[#191919] md:text-6xl">
+              Land your next role with a calmer,
+              <span className="mx-2 inline-block text-[#6a7c73]">cleaner</span>
+              Hunter experience.
+            </h1>
+
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-black/60 md:text-lg">
+              Track applications, create personalized cover letters, and review search insights with the
+              same Hunter product, now in a more polished layout using your current color direction.
+            </p>
+
+            <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <button
+                onClick={() => navigate("/login")}
+                className="inline-flex w-full items-center justify-center rounded-full bg-[#191919] px-7 py-3.5 text-base font-semibold text-white shadow-[0_18px_36px_rgba(25,25,25,0.16)] transition hover:-translate-y-0.5 hover:bg-black sm:w-auto"
+              >
+                Start Tracking for Free
+              </button>
+              <button
+                onClick={() => navigate("/signup")}
+                className="inline-flex w-full items-center justify-center rounded-full border border-black/10 bg-white/80 px-7 py-3.5 text-base font-semibold text-[#191919] transition hover:bg-white sm:w-auto"
+              >
+                Create Account
+              </button>
+            </div>
+
+            <div className="mt-14">
+              <div className="hunter-panel overflow-hidden rounded-[30px] p-3 md:p-5">
+                <div className="rounded-[26px] border border-black/6 bg-[#fbfbfa]">
+                  <div className="flex items-center gap-2 border-b border-black/6 px-4 py-3 md:px-5">
+                    <div className="h-3 w-3 rounded-full bg-[#d2b7a0]" />
+                    <div className="h-3 w-3 rounded-full bg-[#ddd0a5]" />
+                    <div className="h-3 w-3 rounded-full bg-[#b8cdbf]" />
+                    <div className="ml-3 h-8 w-28 rounded-full border border-black/6 bg-white/80 md:w-52" />
+                  </div>
+
+                  <div className="grid gap-4 p-4 md:grid-cols-12 md:p-6">
+                    <div className="rounded-[22px] bg-white p-4 md:col-span-3">
+                      <div className="h-9 w-24 rounded-2xl bg-[#e7eaef]" />
+                      <div className="mt-4 space-y-3">
+                        <div className="h-3 rounded-full bg-[#f0efeb]" />
+                        <div className="h-3 w-4/5 rounded-full bg-[#f0efeb]" />
+                        <div className="h-3 w-2/3 rounded-full bg-[#f0efeb]" />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 md:col-span-9 md:grid-cols-3">
+                      <div className="rounded-[22px] bg-[#e7eaef] p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5f6d82]">Applied</div>
+                        <div className="mt-6 h-12 rounded-2xl bg-white/75" />
+                      </div>
+                      <div className="rounded-[22px] bg-[#e4ebea] p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5a7265]">Interview</div>
+                        <div className="mt-6 h-12 rounded-2xl bg-white/75" />
+                      </div>
+                      <div className="rounded-[22px] bg-[#ece6da] p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a6f45]">Offers</div>
+                        <div className="mt-6 h-12 rounded-2xl bg-white/75" />
+                      </div>
+
+                      <div className="rounded-[24px] border border-black/6 bg-white p-4 shadow-[0_16px_30px_rgba(25,25,25,0.04)] md:col-span-2">
+                        <div className="mb-4 text-sm font-semibold text-black/62">Application momentum</div>
+                        <div className="flex h-40 items-end gap-3">
+                          <div className="h-[42%] flex-1 rounded-t-[16px] bg-[#d9e1e0]" />
+                          <div className="h-[58%] flex-1 rounded-t-[16px] bg-[#c8d4d1]" />
+                          <div className="h-[46%] flex-1 rounded-t-[16px] bg-[#b8c7d0]" />
+                          <div className="h-[78%] flex-1 rounded-t-[16px] bg-[#94a5b6]" />
+                          <div className="h-[68%] flex-1 rounded-t-[16px] bg-[#191919]" />
+                        </div>
+                      </div>
+
+                      <div className="rounded-[24px] border border-black/6 bg-white p-4 shadow-[0_16px_30px_rgba(25,25,25,0.04)]">
+                        <div className="text-sm font-semibold text-black/62">Response rate</div>
+                        <div className="mx-auto mt-6 flex h-28 w-28 items-center justify-center rounded-full border-[12px] border-[#9cb7aa] text-xl font-semibold text-[#191919]">
+                          72%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mx-auto mt-5 max-w-xs rounded-[22px] border border-black/6 bg-white/86 p-4 shadow-[0_18px_30px_rgba(25,25,25,0.05)] md:mr-2 md:ml-auto">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#5f766d] text-sm font-bold text-white">
+                      OK
+                    </div>
+                    <div className="text-left">
+                      <div className="text-sm font-semibold text-[#191919]">Offer stage updated</div>
+                      <div className="text-xs text-black/50">Frontend role at a saved company</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="features" className="border-t border-black/6 bg-white/42 px-5 py-18 md:px-8 md:py-22">
+          <div className="mx-auto max-w-6xl">
+            <div className="text-center">
+              <h2 className="font-serif text-3xl font-bold tracking-tight text-[#191919] md:text-5xl">
+                Everything you need, just presented better
+              </h2>
+              <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-black/56 md:text-lg">
+                Same Hunter workflow, same product direction, improved balance, spacing, and visual clarity.
+              </p>
+            </div>
+
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              {features.map((feature) => (
+                <article key={feature.title} className="hunter-panel rounded-[28px] p-7">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-bold ${feature.tone}`}>
+                    H
+                  </div>
+                  <h3 className="mt-5 text-xl font-semibold tracking-tight text-[#191919]">{feature.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-black/58 md:text-base">{feature.description}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="workflow" className="border-t border-black/6 px-5 py-18 md:px-8 md:py-22">
+          <div className="mx-auto max-w-6xl">
+            <div className="text-center">
+              <h2 className="font-serif text-3xl font-bold tracking-tight text-[#191919] md:text-5xl">
+                How Hunter works
+              </h2>
+              <p className="mt-4 text-base text-black/56 md:text-lg">A familiar flow, with cleaner section sizing and hierarchy.</p>
+            </div>
+
+            <div className="relative mt-12 grid gap-6 md:grid-cols-3">
+              <div className="absolute left-0 top-8 hidden h-px w-full bg-gradient-to-r from-transparent via-black/12 to-transparent md:block" />
+              {steps.map((step, index) => (
+                <article key={step.number} className="relative z-10 text-center">
+                  <div
+                    className={`mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] text-xl font-bold shadow-[0_18px_28px_rgba(25,25,25,0.08)] ${
+                      index === 0
+                        ? "bg-[#191919] text-white"
+                        : index === 1
+                          ? "border border-black/10 bg-white text-[#191919]"
+                          : "bg-[#ece6da] text-[#191919]"
+                    }`}
+                  >
+                    {step.number}
+                  </div>
+                  <h3 className="mt-6 text-xl font-semibold tracking-tight text-[#191919]">{step.title}</h3>
+                  <p className="mx-auto mt-3 max-w-xs text-sm leading-7 text-black/58 md:text-base">{step.description}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="launch" className="border-t border-black/6 px-5 py-18 md:px-8 md:py-22">
+          <div className="mx-auto max-w-5xl">
+            <div className="overflow-hidden rounded-[34px] bg-[#191919] px-6 py-10 text-center text-white md:px-10 md:py-14">
+              <h2 className="font-serif text-3xl font-bold tracking-tight md:text-5xl">
+                Ready to level up your search?
+              </h2>
+              <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/68 md:text-lg">
+                Hunter keeps the same tools you already built. This update just brings the landing page back
+                to a cleaner, better-sized version using your current colors.
+              </p>
+              <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+                <button
+                  onClick={() => navigate("/signup")}
+                  className="rounded-full bg-white px-7 py-3.5 text-base font-semibold text-[#191919] transition hover:bg-[#f1f1ed]"
+                >
+                  Get Started
+                </button>
+                <button
+                  onClick={() => navigate("/login")}
+                  className="rounded-full border border-white/16 px-7 py-3.5 text-base font-semibold text-white transition hover:bg-white/8"
+                >
+                  Sign In
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer className="border-t border-black/6 px-5 py-10 md:px-8">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 md:flex-row">
+            <div className="text-center md:text-left">
+              <div className="font-serif text-2xl font-bold italic text-[#191919]">Hunter</div>
+              <div className="mt-1 text-[11px] uppercase tracking-[0.2em] text-black/40">
+                Job tracking, AI drafting, analytics
+              </div>
+            </div>
+            <div className="flex gap-6 text-sm text-black/48">
+              <a href="#features" className="transition hover:text-black">Features</a>
+              <a href="https://github.com/Shivam000189/hunter" className="transition hover:text-black">Support</a>
+              <a href="https://x.com/shivam_s0" className="transition hover:text-black">Twitter</a>
+            </div>
+            <div className="text-sm text-black/36">© 2026 Hunter</div>
+          </div>
+        </footer>
+      </div>
+    </div>
   );
 }
