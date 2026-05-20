@@ -55,7 +55,7 @@ export const createJob = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || err.status || 500).json({
       success: false,
       message: err.message,
     });
@@ -81,7 +81,7 @@ export const getJob = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || err.status || 500).json({
       success: false,
       message: err.message,
     });
@@ -111,7 +111,7 @@ export const updateJob = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || err.status || 500).json({
       success: false,
       message: err.message,
     });
@@ -162,7 +162,7 @@ export const updateStatus = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || err.status || 500).json({
       success: false,
       message: err.message,
     });
@@ -184,7 +184,7 @@ export const deleteJob = async (req: AuthRequest, res: Response) => {
       message: "Job application deleted successfully",
     });
   } catch (err: any) {
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || err.status || 500).json({
       success: false,
       message: err.message,
     });

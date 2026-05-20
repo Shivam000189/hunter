@@ -5,10 +5,7 @@ import * as aiService from "../services/ai.service";
 // POST /ai/cover-letter
 export const generate = async (req: AuthRequest, res: Response) => {
   try {
-    const result = await aiService.generateCoverLetter(
-      req.userId!,
-      req.body
-    );
+    const result = await aiService.generateCoverLetter(req.userId!, req.body);
 
     res.json({
       success: true,
@@ -21,7 +18,7 @@ export const generate = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || err.status || 500).json({
       success: false,
       message: err.message,
     });
@@ -52,10 +49,7 @@ export const getOne = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: "Invalid ID" });
     }
 
-    const letter = await aiService.getCoverLetterById(
-      req.userId!,
-      id
-    );
+    const letter = await aiService.getCoverLetterById(req.userId!, id);
 
     res.json({
       success: true,
@@ -67,7 +61,7 @@ export const getOne = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || err.status || 500).json({
       success: false,
       message: err.message,
     });
@@ -83,7 +77,7 @@ export const resumeFeedback = async (req: AuthRequest, res: Response) => {
       data,
     });
   } catch (err: any) {
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || err.status || 500).json({
       success: false,
       message: err.message,
     });
@@ -99,7 +93,7 @@ export const resumeMatch = async (req: AuthRequest, res: Response) => {
       data,
     });
   } catch (err: any) {
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || err.status || 500).json({
       success: false,
       message: err.message,
     });

@@ -32,7 +32,7 @@ export const upload = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || err.status || 500).json({
       success: false,
       message: err.message,
     });

@@ -25,7 +25,7 @@ export const register = async (req: Request, res: Response) => {
     },
   });
   } catch (error: any) {
-    res.status(error.status || 400).json({
+    res.status(error.statusCode || error.status || 400).json({
       success: false,
       message: error.message,
     });
@@ -52,7 +52,7 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.status(err.status || 400).json({
+    res.status(err.statusCode || err.status || 400).json({
       success: false,
       message: err.message,
     });

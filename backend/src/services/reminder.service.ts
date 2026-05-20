@@ -52,7 +52,6 @@ export const triggerReminders = async () => {
         console.error("Email failed:", error);
       }
 
-      totalEmails++;
       totalJobs++;
 
       await prisma.reminderLog.create({

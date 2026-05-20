@@ -39,10 +39,38 @@ export default function App() {
             }
           />
 
-          <Route path="/generator" element={<AiCoverLetter />} />
-          <Route path="/resume" element={<Resume />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/reminder" element={<Reminder />} />
+          <Route
+            path="/generator"
+            element={
+              <ProtectedRoute>
+                <AiCoverLetter />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resume"
+            element={
+              <ProtectedRoute>
+                <Resume />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <Analytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reminder"
+            element={
+              <ProtectedRoute>
+                <Reminder />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
