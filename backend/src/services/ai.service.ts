@@ -36,6 +36,7 @@ data: any
     }
 
     // trim  input 
+    // Cap prompt input size to keep model token usage and cost predictable.
     const trimmedJD = jobDescription.slice(0, 1000);
 
     
@@ -218,6 +219,7 @@ export const getResumeFeedback = async (_userId: string, data: any) => {
         throw { status: 400, message: "resumeText is required" };
     }
 
+    // Cap prompt input size to keep model token usage and cost predictable.
     const prompt = `
     Analyze this resume${jobDescription ? " against the provided job description" : ""}.
 

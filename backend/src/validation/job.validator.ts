@@ -8,3 +8,10 @@ export const createJobSchema = z.object({
   notes: z.string().optional(),
   resumeId: z.string().optional(),
 });
+
+export const updateJobSchema = createJobSchema
+  .omit({ appliedDate: true })
+  .partial();
+
+export type CreateJobInput = z.infer<typeof createJobSchema>;
+export type UpdateJobInput = z.infer<typeof updateJobSchema>;

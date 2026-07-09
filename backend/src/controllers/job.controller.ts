@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth.middleware";
 import * as jobService from "../services/job.service";
-import { createJobSchema } from "../validation/job.validator";
+import { createJobSchema, updateJobSchema } from "../validation/job.validator";
 
 // GET ALL
 export const getJobs = async (req: AuthRequest, res: Response) => {
@@ -97,11 +97,16 @@ export const updateJob = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: "Invalid ID" });
     }
 
-    const job = await jobService.updateJob(
-      req.userId!,
-      id,
-      req.body
-    );
+    const parsed = updateJobSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return res.status(400).json({
+        success: false,
+        message: parsed.error.issues,
+      });
+    }
+
+    const job = await jobService.updateJob(req.userId!, id, parsed.data);
 
     res.json({
       success: true,

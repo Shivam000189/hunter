@@ -1,6 +1,7 @@
 import prisma from "../config/prisma";
-import { JobStatus } from "@prisma/client";
+import { JobStatus, Prisma } from "@prisma/client";
 import { AppError } from "../utils/AppError";
+import type { CreateJobInput, UpdateJobInput } from "../validation/job.validator";
 
 const countedStatusFields: Partial<Record<JobStatus, "interviews" | "offers">> = {
   [JobStatus.INTERVIEW]: "interviews",
@@ -12,7 +13,7 @@ const resumeMetricDelta = (
   direction: 1 | -1,
   includeUsage = false
 ) => {
-  const data: any = {};
+  const data: Prisma.ResumeUpdateInput = {};
   const statusField = countedStatusFields[status];
 
   if (includeUsage) {
@@ -58,7 +59,7 @@ const ensureResumeBelongsToUser = async (userId: string, resumeId?: string) => {
   }
 };
 
-export const createJob = async (userId: string, data: any) => {
+export const createJob = async (userId: string, data: CreateJobInput) => {
   await ensureResumeBelongsToUser(userId, data.resumeId);
 
   return prisma.$transaction(async (tx) => {
@@ -66,10 +67,10 @@ export const createJob = async (userId: string, data: any) => {
       data: {
         company: data.company,
         role: data.role,
-        jobUrl: data.jobUrl,
         appliedDate: new Date(data.appliedDate),
-        notes: data.notes,
-        resumeId: data.resumeId,
+        ...(data.jobUrl !== undefined && { jobUrl: data.jobUrl }),
+        ...(data.notes !== undefined && { notes: data.notes }),
+        ...(data.resumeId !== undefined && { resumeId: data.resumeId }),
         userId,
         status: JobStatus.APPLIED,
       },
@@ -135,7 +136,7 @@ export const getJobById = async (userId: string, id: string) => {
 export const updateJob = async (
   userId: string,
   id: string,
-  data: any
+  data: UpdateJobInput
 ) => {
   const existingJob = await getJobById(userId, id);
 
