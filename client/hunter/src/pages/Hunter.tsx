@@ -96,13 +96,13 @@ export function Hunter() {
           <div className="hunter-orb hunter-orb-right" />
 
           <div className="mx-auto max-w-5xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white/82 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-black/55 shadow-[0_12px_24px_rgba(25,25,25,0.05)]">
+            {/* <div className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white/82 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-black/55 shadow-[0_12px_24px_rgba(25,25,25,0.05)]">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#8ba29a] opacity-75" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#5f766d]" />
               </span>
               AI-powered job search workflow
-            </div>
+            </div> */}
 
             <h1 className="mx-auto mt-7 max-w-4xl font-serif text-4xl font-bold leading-[1.04] tracking-tight text-[#191919] md:text-6xl">
               Land your next role with a calmer,
