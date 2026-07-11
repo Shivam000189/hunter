@@ -10,69 +10,72 @@ import { Resume } from "./pages/Resume";
 import { Analytics } from "./pages/Analytics";
 import { Reminder } from "./pages/Reminer";
 import { Hunter } from "./pages/Hunter";
+import { ThemeProvider } from "./context/ThemeContext";
 
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Hunter />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Hunter />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/jobs"
-            element={
-              <ProtectedRoute>
-                <Jobs />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/jobs"
+              element={
+                <ProtectedRoute>
+                  <Jobs />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/generator"
-            element={
-              <ProtectedRoute>
-                <AiCoverLetter />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/resume"
-            element={
-              <ProtectedRoute>
-                <Resume />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/analytics"
-            element={
-              <ProtectedRoute>
-                <Analytics />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reminder"
-            element={
-              <ProtectedRoute>
-                <Reminder />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            <Route
+              path="/generator"
+              element={
+                <ProtectedRoute>
+                  <AiCoverLetter />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/resume"
+              element={
+                <ProtectedRoute>
+                  <Resume />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <Analytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reminder"
+              element={
+                <ProtectedRoute>
+                  <Reminder />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

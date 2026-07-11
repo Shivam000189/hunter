@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 
 const features = [
   {
@@ -44,12 +46,21 @@ const steps = [
 
 export function Hunter() {
   const navigate = useNavigate();
+  const { isDark } = useTheme();
 
   return (
-    <div className="hunter-landing min-h-screen bg-[#f4f4f3] text-[#191919]">
+    <div
+      className={`hunter-landing min-h-screen ${
+        isDark ? "hunter-landing-dark text-white" : "bg-[#f4f4f3] text-[#191919]"
+      }`}
+    >
       <div className="hunter-mesh pointer-events-none fixed inset-0 opacity-70" />
       <div className="relative">
-        <nav className="sticky top-0 z-30 border-b border-black/6 bg-[#f4f4f3]/88 backdrop-blur-xl">
+        <nav
+          className={`sticky top-0 z-30 backdrop-blur-xl ${
+            isDark ? "border-b border-white/10 bg-[#171717]/78" : "border-b border-black/6 bg-[#f4f4f3]/88"
+          }`}
+        >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 md:px-8">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#191919] shadow-[0_14px_30px_rgba(25,25,25,0.14)]">
@@ -63,27 +74,32 @@ export function Hunter() {
                 </svg>
               </div>
               <div>
-                <div className="font-serif text-2xl font-bold italic leading-none">Hunter</div>
-                <div className="text-[10px] uppercase tracking-[0.22em] text-black/40">Job Search Command</div>
+                <div className={`font-serif text-2xl font-bold italic leading-none ${isDark ? "text-white" : ""}`}>Hunter</div>
+                <div className={`text-[10px] uppercase tracking-[0.22em] ${isDark ? "text-white/40" : "text-black/40"}`}>Job Search Command</div>
               </div>
             </div>
 
-            <div className="hidden items-center gap-6 text-sm font-medium text-black/58 md:flex">
-              <a href="#features" className="transition hover:text-black">Features</a>
-              <a href="#workflow" className="transition hover:text-black">How it works</a>
-              <a href="#launch" className="transition hover:text-black">Get started</a>
+            <div className={`hidden items-center gap-6 text-sm font-medium md:flex ${isDark ? "text-white/58" : "text-black/58"}`}>
+              <a href="#features" className={`transition ${isDark ? "hover:text-white" : "hover:text-black"}`}>Features</a>
+              <a href="#workflow" className={`transition ${isDark ? "hover:text-white" : "hover:text-black"}`}>How it works</a>
+              <a href="#launch" className={`transition ${isDark ? "hover:text-white" : "hover:text-black"}`}>Get started</a>
             </div>
 
             <div className="flex items-center gap-3">
+              <ThemeToggle />
               <button
                 onClick={() => navigate("/login")}
-                className="rounded-full px-4 py-2 text-sm font-medium text-black/62 transition hover:bg-white/70"
+                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                  isDark ? "text-white/72 hover:bg-white/8" : "text-black/62 hover:bg-white/70"
+                }`}
               >
                 Sign In
               </button>
               <button
                 onClick={() => navigate("/signup")}
-                className="rounded-full bg-[#191919] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-black"
+                className={`rounded-full px-5 py-2.5 text-sm font-semibold text-white transition ${
+                  isDark ? "bg-white/12 hover:bg-white/18" : "bg-[#191919] hover:bg-black"
+                }`}
               >
                 Get Started
               </button>
@@ -104,13 +120,13 @@ export function Hunter() {
               AI-powered job search workflow
             </div> */}
 
-            <h1 className="mx-auto mt-7 max-w-4xl font-serif text-4xl font-bold leading-[1.04] tracking-tight text-[#191919] md:text-6xl">
+            <h1 className={`mx-auto mt-7 max-w-4xl font-serif text-4xl font-bold leading-[1.04] tracking-tight md:text-6xl ${isDark ? "text-white" : "text-[#191919]"}`}>
               Land your next role with a calmer,
-              <span className="mx-2 inline-block text-[#6a7c73]">cleaner</span>
+              <span className={`mx-2 inline-block ${isDark ? "text-[#a6beb4]" : "text-[#6a7c73]"}`}>cleaner</span>
               Hunter experience.
             </h1>
 
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-black/60 md:text-lg">
+            <p className={`mx-auto mt-6 max-w-2xl text-base leading-7 md:text-lg ${isDark ? "text-white/64" : "text-black/60"}`}>
               Track applications, create personalized cover letters, and review search insights with the
               same Hunter product, now in a more polished layout using your current color direction.
             </p>
@@ -118,13 +134,19 @@ export function Hunter() {
             <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <button
                 onClick={() => navigate("/login")}
-                className="inline-flex w-full items-center justify-center rounded-full bg-[#191919] px-7 py-3.5 text-base font-semibold text-white shadow-[0_18px_36px_rgba(25,25,25,0.16)] transition hover:-translate-y-0.5 hover:bg-black sm:w-auto"
+                className={`inline-flex w-full items-center justify-center rounded-full px-7 py-3.5 text-base font-semibold text-white shadow-[0_18px_36px_rgba(25,25,25,0.16)] transition hover:-translate-y-0.5 sm:w-auto ${
+                  isDark ? "bg-white/12 hover:bg-white/18" : "bg-[#191919] hover:bg-black"
+                }`}
               >
                 Start Tracking for Free
               </button>
               <button
                 onClick={() => navigate("/signup")}
-                className="inline-flex w-full items-center justify-center rounded-full border border-black/10 bg-white/80 px-7 py-3.5 text-base font-semibold text-[#191919] transition hover:bg-white sm:w-auto"
+                className={`inline-flex w-full items-center justify-center rounded-full px-7 py-3.5 text-base font-semibold transition sm:w-auto ${
+                  isDark
+                    ? "border border-white/12 bg-white/6 text-white hover:bg-white/10"
+                    : "border border-black/10 bg-white/80 text-[#191919] hover:bg-white"
+                }`}
               >
                 Create Account
               </button>
@@ -132,21 +154,21 @@ export function Hunter() {
 
             <div className="mt-14">
               <div className="hunter-panel overflow-hidden rounded-[30px] p-3 md:p-5">
-                <div className="rounded-[26px] border border-black/6 bg-[#fbfbfa]">
-                  <div className="flex items-center gap-2 border-b border-black/6 px-4 py-3 md:px-5">
+                <div className={`rounded-[26px] ${isDark ? "border border-white/8 bg-[#1b1b20]" : "border border-black/6 bg-[#fbfbfa]"}`}>
+                  <div className={`flex items-center gap-2 px-4 py-3 md:px-5 ${isDark ? "border-b border-white/8" : "border-b border-black/6"}`}>
                     <div className="h-3 w-3 rounded-full bg-[#d2b7a0]" />
                     <div className="h-3 w-3 rounded-full bg-[#ddd0a5]" />
                     <div className="h-3 w-3 rounded-full bg-[#b8cdbf]" />
-                    <div className="ml-3 h-8 w-28 rounded-full border border-black/6 bg-white/80 md:w-52" />
+                    <div className={`ml-3 h-8 w-28 rounded-full md:w-52 ${isDark ? "border border-white/8 bg-white/10" : "border border-black/6 bg-white/80"}`} />
                   </div>
 
                   <div className="grid gap-4 p-4 md:grid-cols-12 md:p-6">
-                    <div className="rounded-[22px] bg-white p-4 md:col-span-3">
+                    <div className={`rounded-[22px] p-4 md:col-span-3 ${isDark ? "bg-white/6" : "bg-white"}`}>
                       <div className="h-9 w-24 rounded-2xl bg-[#e7eaef]" />
                       <div className="mt-4 space-y-3">
-                        <div className="h-3 rounded-full bg-[#f0efeb]" />
-                        <div className="h-3 w-4/5 rounded-full bg-[#f0efeb]" />
-                        <div className="h-3 w-2/3 rounded-full bg-[#f0efeb]" />
+                        <div className={`h-3 rounded-full ${isDark ? "bg-white/8" : "bg-[#f0efeb]"}`} />
+                        <div className={`h-3 w-4/5 rounded-full ${isDark ? "bg-white/8" : "bg-[#f0efeb]"}`} />
+                        <div className={`h-3 w-2/3 rounded-full ${isDark ? "bg-white/8" : "bg-[#f0efeb]"}`} />
                       </div>
                     </div>
 
@@ -164,8 +186,8 @@ export function Hunter() {
                         <div className="mt-6 h-12 rounded-2xl bg-white/75" />
                       </div>
 
-                      <div className="rounded-[24px] border border-black/6 bg-white p-4 shadow-[0_16px_30px_rgba(25,25,25,0.04)] md:col-span-2">
-                        <div className="mb-4 text-sm font-semibold text-black/62">Application momentum</div>
+                      <div className={`rounded-[24px] p-4 shadow-[0_16px_30px_rgba(25,25,25,0.04)] md:col-span-2 ${isDark ? "border border-white/8 bg-white/6" : "border border-black/6 bg-white"}`}>
+                        <div className={`mb-4 text-sm font-semibold ${isDark ? "text-white/70" : "text-black/62"}`}>Application momentum</div>
                         <div className="flex h-40 items-end gap-3">
                           <div className="h-[42%] flex-1 rounded-t-[16px] bg-[#d9e1e0]" />
                           <div className="h-[58%] flex-1 rounded-t-[16px] bg-[#c8d4d1]" />
@@ -175,9 +197,9 @@ export function Hunter() {
                         </div>
                       </div>
 
-                      <div className="rounded-[24px] border border-black/6 bg-white p-4 shadow-[0_16px_30px_rgba(25,25,25,0.04)]">
-                        <div className="text-sm font-semibold text-black/62">Response rate</div>
-                        <div className="mx-auto mt-6 flex h-28 w-28 items-center justify-center rounded-full border-[12px] border-[#9cb7aa] text-xl font-semibold text-[#191919]">
+                      <div className={`rounded-[24px] p-4 shadow-[0_16px_30px_rgba(25,25,25,0.04)] ${isDark ? "border border-white/8 bg-white/6" : "border border-black/6 bg-white"}`}>
+                        <div className={`text-sm font-semibold ${isDark ? "text-white/70" : "text-black/62"}`}>Response rate</div>
+                        <div className={`mx-auto mt-6 flex h-28 w-28 items-center justify-center rounded-full border-[12px] text-xl font-semibold ${isDark ? "border-[#7f9a8d] text-white" : "border-[#9cb7aa] text-[#191919]"}`}>
                           72%
                         </div>
                       </div>
@@ -185,14 +207,14 @@ export function Hunter() {
                   </div>
                 </div>
 
-                <div className="mx-auto mt-5 max-w-xs rounded-[22px] border border-black/6 bg-white/86 p-4 shadow-[0_18px_30px_rgba(25,25,25,0.05)] md:mr-2 md:ml-auto">
+                <div className={`mx-auto mt-5 max-w-xs rounded-[22px] p-4 shadow-[0_18px_30px_rgba(25,25,25,0.05)] md:mr-2 md:ml-auto ${isDark ? "border border-white/8 bg-white/8" : "border border-black/6 bg-white/86"}`}>
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#5f766d] text-sm font-bold text-white">
                       OK
                     </div>
                     <div className="text-left">
-                      <div className="text-sm font-semibold text-[#191919]">Offer stage updated</div>
-                      <div className="text-xs text-black/50">Frontend role at a saved company</div>
+                      <div className={`text-sm font-semibold ${isDark ? "text-white" : "text-[#191919]"}`}>Offer stage updated</div>
+                      <div className={`text-xs ${isDark ? "text-white/50" : "text-black/50"}`}>Frontend role at a saved company</div>
                     </div>
                   </div>
                 </div>
