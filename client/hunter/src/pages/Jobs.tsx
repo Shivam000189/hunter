@@ -120,6 +120,11 @@ export function Jobs() {
     loadJobs();
   }
 
+
+  const clicklink = (url: string) => {
+    window.open(url, "_blank");
+  }
+
   async function updateStatus(job: Job, status: string) {
     await api.patch(`/api/v1/jobs/${getJobId(job)}/status`, {
       status: status.toLowerCase(),
@@ -247,7 +252,7 @@ export function Jobs() {
 
                           <div className="min-w-0 flex-1">
                             <div className="truncate font-medium">{job.role}</div>
-                            <div className="text-sm text-slate-500">
+                            <div className="text-sm text-slate-500" onClick={() => job.jobUrl && clicklink(job.jobUrl)} style={{cursor: job.jobUrl ? 'pointer' : 'default'}}>
                               {job.company}
                             </div>
                           </div>

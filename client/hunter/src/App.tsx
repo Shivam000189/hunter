@@ -12,7 +12,6 @@ import { Reminder } from "./pages/Reminer";
 import { Hunter } from "./pages/Hunter";
 import { ThemeProvider } from "./context/ThemeContext";
 
-
 export default function App() {
   return (
     <ThemeProvider>
