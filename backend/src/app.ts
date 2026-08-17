@@ -39,6 +39,7 @@ app.use("/api/v1/ai", aiRoutes);
 app.use("/api/v1/resumes", resumeRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/reminders", reminderRoutes);
+app.use("/api/v1/interviews", require("./controllers/github.controller").githubRouter);
 
 app.get("/", (_req, res) => {
   res.send("API running...");

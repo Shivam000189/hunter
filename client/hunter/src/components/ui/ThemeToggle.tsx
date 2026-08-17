@@ -18,9 +18,9 @@ export function ThemeToggle() {
           className="absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow-[0_10px_18px_rgba(25,25,25,0.16)]"
         />
 
-        <div className="relative z-10 flex w-full items-center justify-between px-1 text-[11px]">
-          <span className={isDark ? "text-black/30" : "text-[#c58b1d]"}>☀</span>
-          <span className={isDark ? "text-[#7b86aa]" : "text-black/30"}>☾</span>
+        <div className="relative z-10 flex w-full items-center justify-between px-1 text-[11px] font-semibold">
+          <span className={isDark ? "text-black/30" : "text-[#c58b1d]"}>L</span>
+          <span className={isDark ? "text-[#7b86aa]" : "text-black/30"}>D</span>
         </div>
       </div>
     </button>

@@ -118,3 +118,35 @@ model ReminderSettings{
   staleDays Int @default(7)
   enabled Boolean @default(true)
 }
+
+
+
+model Interview {
+  id     String @id @default(uuid())
+  githubMetadata  Json
+  status  InterviewStatus 
+  score Int @default(0)
+  conversation  Message[]
+  feedback  String?
+}
+
+model Message {
+  id String @id @default(uuid())
+  message  String
+  type MessageType
+  interviewId String
+  interview  Interview @relation(fields: [interviewId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+enum MessageType {
+  USER
+  ASSISTANT
+}
+
+
+enum InterviewStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
