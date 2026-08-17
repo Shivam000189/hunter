@@ -109,7 +109,7 @@ export function Hunter() {
 
       <section className="relative z-10 mx-auto max-w-6xl px-6 pb-28 pt-24">
         <div className="animate-fade-in-up">
-          <div
+          {/* <div
             className="mb-8 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium"
             style={{
               background: "var(--hunter-accent-soft)",
@@ -119,7 +119,7 @@ export function Hunter() {
           >
             <Icon name="Sparkles" size={14} />
             <span>AI-powered job search, reimagined</span>
-          </div>
+          </div> */}
 
           <h1
             className="mb-6 max-w-4xl font-display text-5xl font-medium leading-[1.05] tracking-tight md:text-7xl"

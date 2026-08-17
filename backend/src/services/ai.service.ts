@@ -307,3 +307,59 @@ export const getResumeMatchScore = async (_userId: string, data: any) => {
 
     return keywordMatch(resumeText, jobDescription);
 };
+
+
+export const generateColdEmail = async (userId: string, data: any) => {
+    const { recipientName, companyName, jobTitle, userSkills = [], tone = "formal" } = data;
+    
+    if (!recipientName || !companyName || !jobTitle) {
+        throw { status: 400, message: "recipientName, companyName, and jobTitle are required" };
+    }
+
+    const prompt = `
+    Write a ${tone} cold email to ${recipientName} at ${companyName} for the position of ${jobTitle}.
+
+    Rules:
+    - No placeholders like [Your Name] or [Number]
+    - Use real tone (human-like, not robotic)
+    - Keep it under 150 words
+    - Mention relevant skills clearly
+    - Make it specific to the job
+
+    Candidate Skills:
+    ${userSkills.join(", ")}
+
+    Output format:
+    Start with "Dear ${recipientName},"
+    End professionally (no placeholders)
+    `;
+
+    let content = "";
+
+    try {
+        const response = await generateWithRetry(() =>
+            openai.chat.completions.create({
+                model: "mistralai/mistral-7b-instruct",
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 300,
+            })
+        );
+
+        content = response.choices?.[0]?.message?.content || "";
+    } catch {
+        content = "";
+    }
+
+    if (!content) {
+        content = `Dear ${recipientName},
+
+I am excited to apply for the ${jobTitle} position at ${companyName}. With my skills in ${userSkills.join(", ")}, I believe I can contribute effectively to your team.
+
+Thank you for your time and consideration.
+
+Sincerely,
+Candidate`;
+    }
+
+    return { content };
+};

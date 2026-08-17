@@ -5,7 +5,7 @@ import * as aiService from "../services/ai.service";
 // POST /ai/cover-letter
 export const generate = async (req: AuthRequest, res: Response) => {
   try {
-    const result = await aiService.generateCoverLetter(req.userId!, req.body);
+    const result = await aiService.generateCoverLetter(req.userId!, req.body) as any;
 
     res.json({
       success: true,
@@ -99,3 +99,26 @@ export const resumeMatch = async (req: AuthRequest, res: Response) => {
     });
   }
 };
+
+
+export const generateColdEmail = async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await aiService.generateColdEmail(req.userId!, req.body) as any;
+
+    res.json({
+      success: true,
+      data: {
+        _id: result.id,
+        content: result.content,
+        jobId: result.jobId,
+        userId: result.userId,
+        generatedAt: result.generatedAt,
+      },
+    });
+  } catch (err: any) {
+    res.status(err.statusCode || err.status || 500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+}

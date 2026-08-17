@@ -21,5 +21,6 @@ router.post("/resume-feedback", aiLimiter, aiController.resumeFeedback);
 router.post("/resume-match", aiController.resumeMatch);
 router.get("/cover-letters", aiController.getAll);
 router.get("/cover-letters/:id", aiController.getOne);
+router.post("/cold-email", aiLimiter, aiController.generateColdEmail);
 
 export default router;
