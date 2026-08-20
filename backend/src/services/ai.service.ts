@@ -353,6 +353,8 @@ export const generateColdEmail = async (userId: string, data: any) => {
     if (!content) {
         content = `Dear ${recipientName},
 
+Hi, My name is shivam. I am Btech cse Passout student with cgpa of 7.2. 
+
 I am excited to apply for the ${jobTitle} position at ${companyName}. With my skills in ${userSkills.join(", ")}, I believe I can contribute effectively to your team.
 
 Thank you for your time and consideration.
