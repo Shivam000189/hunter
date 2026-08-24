@@ -1,6 +1,15 @@
 import prisma from "../config/prisma";
 import { hashPassword, comparePassword } from "../utils/hash";
 
+export const createGuestUser = async () => {
+  return prisma.user.create({
+    data: {
+      name: "Guest User",
+      email: `guest-${crypto.randomUUID()}@guest.local`,
+    },
+  });
+};
+
 export const registerUser = async (
   name: string,
   email: string,

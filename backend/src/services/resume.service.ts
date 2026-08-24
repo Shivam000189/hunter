@@ -1,5 +1,6 @@
 import cloudinary from "../config/cloudinary";
 import prisma from "../config/prisma";
+import { getResumeFeedback } from "./ai.service";
 
 export const uploadResume = async (
   userId: string,
@@ -8,6 +9,18 @@ export const uploadResume = async (
 ) => {
   if (!file) {
     throw { status: 400, message: "File required" };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+
+  if (user?.email.endsWith("@guest.local")) {
+    const resumeCount = await prisma.resume.count({ where: { userId } });
+    if (resumeCount >= 1) {
+      throw { status: 403, message: "Guest users can upload only one resume" };
+    }
   }
 
   const base64 = file.buffer.toString("base64");
@@ -119,5 +132,35 @@ export const getResumeAnalytics = async (userId: string) => {
           })[0]
         : null,
     resumes: data,
+  };
+};
+
+export const analyzeResumeATS = async (
+  userId: string,
+  id: string,
+  data: { resumeText?: unknown; jobDescription?: unknown }
+) => {
+  const resume = await getResumeById(userId, id);
+
+  if (typeof data.resumeText !== "string" || !data.resumeText.trim()) {
+    throw { status: 400, message: "resumeText is required" };
+  }
+
+  if (
+    data.jobDescription !== undefined &&
+    typeof data.jobDescription !== "string"
+  ) {
+    throw { status: 400, message: "jobDescription must be a string" };
+  }
+
+  const feedback = await getResumeFeedback(userId, {
+    resumeText: data.resumeText,
+    jobDescription: data.jobDescription,
+  });
+
+  return {
+    resumeId: resume.id,
+    versionName: resume.versionName,
+    ...feedback,
   };
 };

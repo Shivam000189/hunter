@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { type ReactNode, useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import api from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { ThemeToggle } from "../ui/ThemeToggle";
@@ -8,6 +8,12 @@ import { ThemeToggle } from "../ui/ThemeToggle";
 type User = {
   name: string;
   email: string;
+};
+
+type PendingReminder = {
+  _id: string;
+  company: string;
+  role: string;
 };
 
 type NavItem = {
@@ -18,8 +24,10 @@ type NavItem = {
 
 export function Sidebar() {
   const [user, setUser] = useState<User | null>(null);
+  const [pendingReminders, setPendingReminders] = useState<PendingReminder[]>([]);
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
 
   useEffect(() => {
@@ -27,7 +35,25 @@ export function Sidebar() {
       .get("/api/auth/me")
       .then((res) => setUser(res.data.data))
       .catch(() => setUser(null));
+
+    const loadPendingReminders = () => {
+      api
+        .get("/api/v1/reminders/pending")
+        .then((res) => setPendingReminders(res.data.data || []))
+        .catch(() => setPendingReminders([]));
+    };
+
+    loadPendingReminders();
+    const interval = window.setInterval(loadPendingReminders, 60_000);
+    return () => window.clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (location.pathname !== "/jobs") return;
+
+    setPendingReminders([]);
+    api.post("/api/v1/reminders/acknowledge").catch(() => undefined);
+  }, [location.pathname]);
 
   const items: NavItem[] = [
     {
@@ -93,13 +119,39 @@ export function Sidebar() {
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-3 sm:bottom-6 sm:px-6">
-      <motion.div
-        initial={{ y: 56, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 280, damping: 24 }}
-        className="hunter-floating-dock pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-2 overflow-x-auto rounded-[1.75rem] border px-3 py-3 text-slate-900 shadow-2xl backdrop-blur-2xl sm:gap-3 sm:px-4"
-      >
+    <>
+      {pendingReminders.length > 0 && (
+        <motion.button
+          type="button"
+          initial={{ x: -24, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          onClick={() => navigate("/jobs")}
+          className="fixed left-3 top-4 z-[60] w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl border border-amber-200 bg-white p-4 text-left text-slate-900 shadow-xl sm:left-6 sm:top-6"
+        >
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 text-xl" aria-hidden="true">⏰</span>
+            <span className="min-w-0">
+              <strong className="block text-sm">Follow-up reminder</strong>
+              <span className="mt-1 block text-xs text-slate-500">
+                {pendingReminders.length === 1
+                  ? `${pendingReminders[0].company} needs your attention.`
+                  : `${pendingReminders.length} applied jobs need your attention.`}
+              </span>
+              <span className="mt-2 block text-xs font-semibold text-amber-700">
+                Open Jobs to review
+              </span>
+            </span>
+          </div>
+        </motion.button>
+      )}
+
+      <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-3 sm:bottom-6 sm:px-6">
+        <motion.div
+          initial={{ y: 56, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 280, damping: 24 }}
+          className="hunter-floating-dock pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-2 overflow-x-auto rounded-[1.75rem] border px-3 py-3 text-slate-900 shadow-2xl backdrop-blur-2xl sm:gap-3 sm:px-4"
+        >
         <div className="flex shrink-0 items-center gap-3 rounded-2xl border border-white/35 bg-white/55 px-3 py-2">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#191919] text-white shadow-lg shadow-black/10">
             <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -200,7 +252,8 @@ export function Sidebar() {
             Logout
           </button>
         </div>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+    </>
   );
 }

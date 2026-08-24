@@ -1,6 +1,50 @@
 import prisma from "../config/prisma";
 import transporter from "../config/mail";
 
+const oneDayAgo = () => new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+const startOfToday = () => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+export const getPendingReminders = async (userId: string) => {
+  return prisma.job.findMany({
+    where: {
+      userId,
+      status: "APPLIED",
+      appliedDate: { lte: oneDayAgo() },
+      OR: [
+        { reminderSeenAt: null },
+        { reminderSeenAt: { lt: startOfToday() } },
+      ],
+    },
+    orderBy: { appliedDate: "asc" },
+    select: {
+      id: true,
+      company: true,
+      role: true,
+      appliedDate: true,
+    },
+  });
+};
+
+export const acknowledgeReminders = async (userId: string) => {
+  return prisma.job.updateMany({
+    where: {
+      userId,
+      status: "APPLIED",
+      appliedDate: { lte: oneDayAgo() },
+      OR: [
+        { reminderSeenAt: null },
+        { reminderSeenAt: { lt: startOfToday() } },
+      ],
+    },
+    data: { reminderSeenAt: new Date() },
+  });
+};
+
 export const triggerReminders = async () => {
   const users = await prisma.user.findMany({
     include: { reminderSettings: true },

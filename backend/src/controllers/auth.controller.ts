@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUser, loginUser, getMe } from "../services/auth.service";
+import { registerUser, loginUser, createGuestUser, getMe } from "../services/auth.service";
 import { generateToken } from "../utils/jwt";
 import { AuthRequest } from "../middleware/auth.middleware";
 
@@ -53,6 +53,29 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     res.status(err.statusCode || err.status || 400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const guestLogin = async (_req: Request, res: Response) => {
+  try {
+    const user = await createGuestUser();
+    const token = generateToken(user.id);
+
+    res.status(201).json({
+      success: true,
+      token,
+      expiresIn: "24h",
+      user: {
+        _id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (err: any) {
+    res.status(err.statusCode || err.status || 500).json({
       success: false,
       message: err.message,
     });

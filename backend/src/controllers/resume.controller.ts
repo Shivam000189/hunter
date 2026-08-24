@@ -69,6 +69,36 @@ export const getAnalytics = async (req: AuthRequest, res: Response) => {
   });
 };
 
+// POST /:id/ats
+export const analyzeATS = async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params.id;
+
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ID",
+      });
+    }
+
+    const data = await resumeService.analyzeResumeATS(
+      req.userId!,
+      id,
+      req.body
+    );
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (err: any) {
+    res.status(err.statusCode || err.status || 500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
 // GET ONE
 export const getOne = async (req: AuthRequest, res: Response) => {
     const id = req.params.id;

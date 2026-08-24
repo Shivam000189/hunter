@@ -47,6 +47,16 @@ export function Login() {
     }
     }
 
+  async function handleGuestLogin() {
+    try {
+      const res = await api.post("/api/auth/guest");
+      login(res.data.token, true);
+      navigate("/dashboard");
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Guest login failed");
+    }
+  }
+
   return (
     <div className="auth-shell flex min-h-screen items-center justify-center bg-slate-100 p-4">
       <div className="mockup-screen w-full max-w-md rounded-2xl bg-white p-5 shadow-sm sm:p-8">
@@ -129,6 +139,13 @@ export function Login() {
               className="w-full py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm"
             >
               Sign In
+            </button>
+            <button
+              type="button"
+              onClick={handleGuestLogin}
+              className="w-full rounded-xl border border-slate-300 py-3 font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              Continue as Guest
             </button>
           </form>
 

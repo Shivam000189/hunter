@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import api from "../api/client";
 import { Sidebar } from "../components/layout/Sidebar";
 import { Icon } from "../components/ui/Icon";
+import { useAuth } from "../context/AuthContext";
 
 type Job = {
   id?: string;
@@ -27,6 +28,7 @@ const formatDate = (date: string) =>
 const getJobId = (job: Job) => job._id || job.id || "";
 
 export function AiCoverLetter() {
+  const { isGuest } = useAuth();
   const [mode, setMode] = useState<GeneratorMode>("cover-letter");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [letters, setLetters] = useState<CoverLetter[]>([]);
@@ -145,7 +147,7 @@ export function AiCoverLetter() {
               >
                 Cover Letter
               </button>
-              <button
+              {!isGuest && <button
                 type="button"
                 onClick={() => {
                   setMode("cold-email");
@@ -159,7 +161,7 @@ export function AiCoverLetter() {
                 }}
               >
                 Cold Email
-              </button>
+              </button>}
             </div>
           </header>
 

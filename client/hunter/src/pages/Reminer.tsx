@@ -9,6 +9,13 @@ type ReminderLog = {
   nextReminder: string;
 };
 
+type PendingReminder = {
+  _id: string;
+  company: string;
+  role: string;
+  appliedDate: string;
+};
+
 const formatDate = (date: string) =>
   new Intl.DateTimeFormat(undefined, {
     month: "short",
@@ -20,16 +27,19 @@ export function Reminder() {
   const [enabled, setEnabled] = useState(true);
   const [staleDays, setStaleDays] = useState(7);
   const [logs, setLogs] = useState<ReminderLog[]>([]);
+  const [pending, setPending] = useState<PendingReminder[]>([]);
   const [loading, setLoading] = useState(true);
 
   function loadData() {
     setLoading(true);
     Promise.all([
       api.get("/api/v1/reminders"),
+      api.get("/api/v1/reminders/pending"),
       api.get("/api/v1/reminders/settings"),
     ])
-      .then(([logsRes, settingsRes]) => {
+      .then(([logsRes, pendingRes, settingsRes]) => {
         setLogs(logsRes.data.data || []);
+        setPending(pendingRes.data.data || []);
         setEnabled(Boolean(settingsRes.data.data.enabled));
         setStaleDays(settingsRes.data.data.staleDays);
       })
@@ -111,6 +121,22 @@ export function Reminder() {
             </div>
           </div>
         </div>
+
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+            <h3 className="text-sm font-semibold text-amber-900">Due today</h3>
+            {pending.length === 0 ? (
+              <p className="mt-2 text-sm text-amber-800">No applied jobs need a follow-up today.</p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {pending.map((job) => (
+                  <div key={job._id} className="flex flex-col justify-between gap-1 rounded-xl bg-white px-3 py-2 text-sm sm:flex-row sm:items-center">
+                    <span className="font-medium text-slate-900">{job.company}</span>
+                    <span className="text-slate-500">{job.role}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
         <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
           <div className="border-b p-4">

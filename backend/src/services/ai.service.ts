@@ -35,6 +35,23 @@ data: any
         throw { status: 400, message: "jobDescription is required" };
     }
 
+    const userAccess = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
+    });
+
+    if (userAccess?.email.endsWith("@guest.local")) {
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const recentLetter = await prisma.coverLetter.findFirst({
+            where: { userId, generatedAt: { gte: weekAgo } },
+            select: { id: true },
+        });
+
+        if (recentLetter) {
+            throw { status: 403, message: "Guest users can generate one cover letter every 7 days" };
+        }
+    }
+
     // trim  input 
     // Cap prompt input size to keep model token usage and cost predictable.
     const trimmedJD = jobDescription.slice(0, 1000);
@@ -310,6 +327,15 @@ export const getResumeMatchScore = async (_userId: string, data: any) => {
 
 
 export const generateColdEmail = async (userId: string, data: any) => {
+    const userAccess = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
+    });
+
+    if (userAccess?.email.endsWith("@guest.local")) {
+        throw { status: 403, message: "Cold email generation is unavailable for guest users" };
+    }
+
     const { recipientName, companyName, jobTitle, userSkills = [], tone = "formal" } = data;
     
     if (!recipientName || !companyName || !jobTitle) {

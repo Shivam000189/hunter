@@ -48,6 +48,7 @@ model Job {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  reminderSeenAt DateTime?
 
 
   coverLetters CoverLetter[]

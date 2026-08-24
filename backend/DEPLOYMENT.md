@@ -102,3 +102,25 @@ npx prisma migrate resolve --applied 20260430210000_resume_intelligence
 ```
 
 After that, redeploy the backend.
+
+## Recover A Failed Existing Migration
+
+If `prisma migrate deploy` reports `P3018` and a duplicate object such as
+`type "JobStatus" already exists`, the database already contains that
+migration's objects but the migration history is incomplete. Confirm that the
+`Job` table and `JobStatus` type exist, then run:
+
+```bash
+npx prisma migrate resolve --rolled-back 20260419181451_add_jobs
+npx prisma migrate resolve --applied 20260419181451_add_jobs
+npx prisma migrate resolve --applied 20260420122807_add_cover_letters
+npx prisma migrate resolve --applied 20260420143513_add_resumes
+npx prisma migrate resolve --applied 20260420170713_add_reminders
+npx prisma migrate resolve --applied 20260420171805_add_reminders
+npx prisma migrate resolve --applied 20260430210000_resume_intelligence
+npx prisma migrate deploy
+```
+
+Only mark a migration as applied when its tables, columns, indexes, and
+constraints already exist. Do not use this recovery sequence on a new or empty
+database.

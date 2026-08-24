@@ -1,6 +1,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from "react";
 import api from "../api/client";
 import { Sidebar } from "../components/layout/Sidebar";
+import { useAuth } from "../context/AuthContext";
 
 type ResumeItem = {
   _id: string;
@@ -36,12 +37,14 @@ const formatDate = (date: string) =>
   }).format(new Date(date));
 
 export function Resume() {
+  const { isGuest } = useAuth();
   const [resumes, setResumes] = useState<ResumeItem[]>([]);
   const [versionName, setVersionName] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<ResumeFeedback | null>(null);
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
   const [aiLoading, setAiLoading] = useState<"feedback" | "match" | null>(null);
@@ -60,7 +63,15 @@ export function Resume() {
     setLoading(true);
     api
       .get("/api/v1/resumes")
-      .then((res) => setResumes(res.data.data || []))
+      .then((res) => {
+        const nextResumes: ResumeItem[] = res.data.data || [];
+        setResumes(nextResumes);
+        setSelectedResumeId((currentId) =>
+          currentId && nextResumes.some((resume) => resume._id === currentId)
+            ? currentId
+            : nextResumes[0]?._id || null
+        );
+      })
       .finally(() => setLoading(false));
   }
 
@@ -98,7 +109,10 @@ export function Resume() {
     setFeedback(null);
 
     try {
-      const res = await api.post("/api/v1/ai/resume-feedback", {
+      const endpoint = selectedResumeId
+        ? `/api/v1/resumes/${selectedResumeId}/ats`
+        : "/api/v1/ai/resume-feedback";
+      const res = await api.post(endpoint, {
         resumeText,
         jobDescription: jobDescription || undefined,
       });
@@ -171,14 +185,22 @@ export function Resume() {
             />
             <input
               type="file"
-              accept=".pdf,.doc,.docx"
+              accept="application/pdf,.pdf"
               onChange={handleFileChange}
               className="rounded-xl border border-slate-300 px-4 py-2 text-sm"
             />
-            <button className="rounded-xl bg-[#191919] px-4 py-3 text-sm font-medium text-white hover:bg-[#2d2d2b] sm:col-span-2">
+            <button
+              disabled={isGuest && resumes.length >= 1}
+              className="rounded-xl bg-[#191919] px-4 py-3 text-sm font-medium text-white hover:bg-[#2d2d2b] disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2"
+            >
               Upload
             </button>
           </div>
+          {isGuest && (
+            <p className="mt-3 text-center text-xs text-slate-500">
+              Guest accounts can upload one resume.
+            </p>
+          )}
         </form>
 
         {loading ? (
@@ -261,6 +283,18 @@ export function Resume() {
           <div className="rounded-2xl bg-white p-5 shadow-sm">
             <h3 className="mb-4 text-sm font-semibold">AI Resume Feedback</h3>
             <div className="space-y-3">
+              <select
+                value={selectedResumeId || ""}
+                onChange={(e) => setSelectedResumeId(e.target.value || null)}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-600"
+              >
+                <option value="">Analyze pasted text only</option>
+                {resumes.map((resume) => (
+                  <option key={resume._id} value={resume._id}>
+                    Check saved resume: {resume.versionName}
+                  </option>
+                ))}
+              </select>
               <textarea
                 value={resumeText}
                 onChange={(e) => setResumeText(e.target.value)}
