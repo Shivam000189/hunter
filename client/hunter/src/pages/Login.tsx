@@ -41,7 +41,7 @@ export function Login() {
         });
 
         login(res.data.token); // save token
-        navigate("/dashboard");
+        navigate("/jobs");
     } catch (err: any) {
         alert(err.response?.data?.message || "Login failed");
     }
@@ -51,7 +51,7 @@ export function Login() {
     try {
       const res = await api.post("/api/auth/guest");
       login(res.data.token, true);
-      navigate("/dashboard");
+      navigate("/jobs");
     } catch (err: any) {
       alert(err.response?.data?.message || "Guest login failed");
     }

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/layout/ProtectedRoute";
 import { Login } from "./pages/Login";
@@ -11,6 +11,13 @@ import { Analytics } from "./pages/Analytics";
 import { Reminder } from "./pages/Reminer";
 import { Hunter } from "./pages/Hunter";
 import { ThemeProvider } from "./context/ThemeContext";
+import { useAuth } from "./context/AuthContext";
+
+function LandingRoute() {
+  const { hasRecentLogin } = useAuth();
+
+  return hasRecentLogin ? <Navigate to="/jobs" replace /> : <Hunter />;
+}
 
 export default function App() {
   return (
@@ -18,7 +25,7 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Hunter />} />
+            <Route path="/" element={<LandingRoute />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
 
