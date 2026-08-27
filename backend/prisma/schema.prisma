@@ -26,6 +26,7 @@ model User {
   resumes Resume[]
   reminderLogs     ReminderLog[]
   reminderSettings ReminderSettings?
+  interviews Interview[]
 }
 
 
@@ -124,11 +125,19 @@ model ReminderSettings{
 
 model Interview {
   id     String @id @default(uuid())
+  userId String?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
   githubMetadata  Json
+  resumeText String?
+  jobDescription String?
+  questionSet Json?
+  answerFeedback Json?
   status  InterviewStatus 
   score Int @default(0)
   conversation  Message[]
   feedback  String?
+
+  @@index([userId])
 }
 
 model Message {

@@ -8,6 +8,7 @@ import aiRoutes from "./routes/ai.routes";
 import resumeRoutes from "./routes/resume.routes";
 import analyticsRoutes from "./routes/analytics.routes";
 import reminderRoutes from "./routes/reminder.routes";
+import interviewRoutes from "./routes/interview.routes";
 
 const app = express();
 
@@ -39,7 +40,7 @@ app.use("/api/v1/ai", aiRoutes);
 app.use("/api/v1/resumes", resumeRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/reminders", reminderRoutes);
-app.use("/api/v1/interviews", require("./controllers/github.controller").githubRouter);
+app.use("/api/v1/interviews", interviewRoutes);
 
 app.get("/", (_req, res) => {
   res.send("API running...");

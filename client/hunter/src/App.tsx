@@ -12,6 +12,7 @@ import { Reminder } from "./pages/Reminer";
 import { Hunter } from "./pages/Hunter";
 import { ThemeProvider } from "./context/ThemeContext";
 import { useAuth } from "./context/AuthContext";
+import { AiInterview } from "./pages/AiInterview";
 
 function LandingRoute() {
   const { hasRecentLogin } = useAuth();
@@ -52,6 +53,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <AiCoverLetter />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/interview"
+              element={
+                <ProtectedRoute>
+                  <AiInterview />
                 </ProtectedRoute>
               }
             />
