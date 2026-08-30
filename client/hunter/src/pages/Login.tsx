@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import { ThemeToggle } from "../components/ui/ThemeToggle";
+import { AuthLayout } from "../components/auth/AuthLayout";
+import { AuthField, authFormContainer } from "../components/auth/AuthField";
 
 type LoginForm = {
   email: string;
@@ -12,7 +14,6 @@ type LoginForm = {
 
 export function Login() {
   const navigate = useNavigate();
-
   const { login } = useAuth();
 
   const [form, setForm] = useState<LoginForm>({
@@ -20,146 +21,161 @@ export function Login() {
     password: "",
     remember: false,
   });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value, type, checked } = e.target;
-
+    setError(null);
     setForm((prev) => ({
       ...prev,
-      [name]:
-        type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
 
     try {
-        const res = await api.post("/api/auth/login", {
+      const res = await api.post("/api/auth/login", {
         email: form.email,
         password: form.password,
-        });
+      });
 
-        login(res.data.token); // save token
-        navigate("/jobs");
+      login(res.data.token);
+      navigate("/jobs");
     } catch (err: any) {
-        alert(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.message || "Login failed. Check your details and try again.");
+    } finally {
+      setLoading(false);
     }
-    }
+  }
 
   async function handleGuestLogin() {
+    setError(null);
+    setGuestLoading(true);
     try {
       const res = await api.post("/api/auth/guest");
       login(res.data.token, true);
       navigate("/jobs");
     } catch (err: any) {
-      alert(err.response?.data?.message || "Guest login failed");
+      setError(err.response?.data?.message || "Guest login failed");
+    } finally {
+      setGuestLoading(false);
     }
   }
 
   return (
-    <div className="auth-shell flex min-h-screen items-center justify-center bg-slate-100 p-4">
-      <div className="mockup-screen w-full max-w-md rounded-2xl bg-white p-5 shadow-sm sm:p-8">
-        <div className="max-w-sm mx-auto">
-          <div className="mb-4 flex justify-end">
-            <ThemeToggle />
-          </div>
+    <AuthLayout
+      mode="login"
+      eyebrow="Hunter for job seekers"
+      title="Welcome back"
+      subtitle="Sign in to pick up right where your search left off."
+      footer={
+        <p className="text-center text-xs sm:text-[13px] text-[var(--hunter-muted)]">
+          Don't have an account?{" "}
+          <Link to="/signup" className="font-medium text-[var(--hunter-text)] hover:underline">
+            Create one for free
+          </Link>
+        </p>
+      }
+    >
+      <motion.form
+        variants={authFormContainer}
+        initial="hidden"
+        animate="show"
+        className="space-y-3 sm:space-y-3.5"
+        onSubmit={handleSubmit}
+        noValidate
+      >
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: "auto", marginBottom: 2 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              className="overflow-hidden rounded-xl border border-[var(--hunter-danger)]/30 bg-[var(--hunter-danger)]/10 px-3 py-2 text-xs text-[var(--hunter-danger)]"
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          <div className="mb-8 text-center">
-            <div className="w-12 h-12 bg-indigo-600 rounded-xl mx-auto mb-4 flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold">Welcome back</h3>
-            <p className="text-slate-500 text-sm mt-1">
-              Sign in to your account
-            </p>
-          </div>
+        <AuthField
+          icon="mail"
+          label="Email"
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={handleChange}
+          placeholder="you@example.com"
+          autoComplete="email"
+        />
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-sm font-medium mb-1.5">Email</label>
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition-all"
+        <AuthField
+          icon="lock"
+          label="Password"
+          name="password"
+          type="password"
+          value={form.password}
+          onChange={handleChange}
+          placeholder="••••••••"
+          autoComplete="current-password"
+          rightSlot={
+            <a href="#" className="text-[11px] font-medium text-[var(--hunter-accent)] hover:underline">
+              Forgot password?
+            </a>
+          }
+        />
+
+        <motion.label
+          variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }}
+          className="flex select-none items-center gap-2 text-xs text-[var(--hunter-muted)]"
+        >
+          <input
+            name="remember"
+            type="checkbox"
+            checked={form.remember}
+            onChange={handleChange}
+            className="rounded border-slate-300 text-[var(--hunter-accent)] focus:ring-[var(--hunter-accent)]"
+          />
+          Remember me on this device
+        </motion.label>
+
+        <motion.div variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }} className="space-y-2 pt-0.5">
+          <motion.button
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            type="submit"
+            disabled={loading}
+            className="hunter-primary-btn flex w-full items-center justify-center gap-2 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? (
+              <motion.span
+                animate={{ rotate: 360 }}
+                transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
+                className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white"
               />
-            </div>
+            ) : (
+              "Sign in"
+            )}
+          </motion.button>
 
-            <div>
-              <label className="block text-sm font-medium mb-1.5">
-                Password
-              </label>
-              <input
-                name="password"
-                type="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition-all"
-              />
-            </div>
-
-            <div className="flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
-              <label className="flex items-center gap-2">
-                <input
-                  name="remember"
-                  type="checkbox"
-                  checked={form.remember}
-                  onChange={handleChange}
-                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
-                />
-                <span className="text-slate-500">Remember me</span>
-              </label>
-
-              <a
-                href="#"
-                className="text-indigo-600 font-medium hover:underline"
-              >
-                Forgot password?
-              </a>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm"
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={handleGuestLogin}
-              className="w-full rounded-xl border border-slate-300 py-3 font-medium text-slate-700 transition-colors hover:bg-slate-50"
-            >
-              Continue as Guest
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-slate-500 mt-6">
-            Don't have an account?{" "}
-            <Link
-              to="/signup"
-              className="text-indigo-600 font-medium hover:underline"
-            >
-              Register here
-            </Link>
-          </p>
-        </div>
-      </div>
-    </div>
+          <motion.button
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            type="button"
+            onClick={handleGuestLogin}
+            disabled={guestLoading}
+            className="hunter-secondary-btn w-full py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {guestLoading ? "Signing in…" : "Continue as guest"}
+          </motion.button>
+        </motion.div>
+      </motion.form>
+    </AuthLayout>
   );
 }

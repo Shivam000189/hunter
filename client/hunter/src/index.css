@@ -2,42 +2,42 @@
 @import "tailwindcss";
 
 :root {
-  --hunter-bg: #f4f4f3;
-  --hunter-surface: rgba(255, 255, 255, 0.78);
-  --hunter-surface-strong: rgba(255, 255, 255, 0.92);
-  --hunter-border: rgba(25, 25, 25, 0.1);
-  --hunter-border-soft: rgba(25, 25, 25, 0.07);
-  --hunter-text: #191919;
-  --hunter-muted: #6b6b68;
-  --hunter-muted-soft: #92928c;
-  --hunter-primary: #191919;
-  --hunter-primary-hover: #2d2d2b;
-  --hunter-accent: #6f7f76;
-  --hunter-accent-soft: #e4ebea;
-  --hunter-success: #6f8f7a;
-  --hunter-warning: #c8aa78;
-  --hunter-danger: #b3777a;
-  --hunter-info: #7f93c9;
+  --hunter-bg: #f7f8f6;
+  --hunter-surface: rgba(255, 255, 255, 0.85);
+  --hunter-surface-strong: rgba(255, 255, 255, 0.96);
+  --hunter-border: rgba(24, 34, 28, 0.09);
+  --hunter-border-soft: rgba(24, 34, 28, 0.05);
+  --hunter-text: #161c18;
+  --hunter-muted: #54635b;
+  --hunter-muted-soft: #83938b;
+  --hunter-primary: #18221c;
+  --hunter-primary-hover: #26362d;
+  --hunter-accent: #37634c;
+  --hunter-accent-soft: #eaf3ee;
+  --hunter-success: #2e7d54;
+  --hunter-warning: #b88636;
+  --hunter-danger: #b85458;
+  --hunter-info: #486bb5;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
-  --shadow-panel: 0 18px 40px rgba(25, 25, 25, 0.05);
+  --shadow-panel: 0 20px 40px -15px rgba(24, 34, 28, 0.07);
   --ease-quiet: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 [data-theme="dark"] {
-  --hunter-bg: #0f0f11;
+  --hunter-bg: #0c100e;
   --hunter-surface: rgba(255, 255, 255, 0.055);
-  --hunter-surface-strong: rgba(30, 30, 35, 0.94);
+  --hunter-surface-strong: rgba(20, 28, 24, 0.94);
   --hunter-border: rgba(255, 255, 255, 0.09);
-  --hunter-border-soft: rgba(255, 255, 255, 0.07);
-  --hunter-text: #f6f3ed;
-  --hunter-muted: rgba(246, 243, 237, 0.58);
-  --hunter-muted-soft: rgba(246, 243, 237, 0.36);
-  --hunter-primary: #191919;
-  --hunter-primary-hover: #242428;
-  --hunter-accent: #a6beb4;
-  --hunter-accent-soft: rgba(111, 127, 118, 0.18);
-  --shadow-panel: 0 18px 44px rgba(0, 0, 0, 0.24);
+  --hunter-border-soft: rgba(255, 255, 255, 0.06);
+  --hunter-text: #f5f7f6;
+  --hunter-muted: rgba(245, 247, 246, 0.65);
+  --hunter-muted-soft: rgba(245, 247, 246, 0.42);
+  --hunter-primary: #18221c;
+  --hunter-primary-hover: #26362d;
+  --hunter-accent: #6ec095;
+  --hunter-accent-soft: rgba(110, 192, 149, 0.16);
+  --shadow-panel: 0 20px 48px rgba(0, 0, 0, 0.34);
 }
 
 @theme {
