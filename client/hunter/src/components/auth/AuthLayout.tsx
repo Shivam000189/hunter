@@ -75,7 +75,7 @@ export function AuthLayout({ mode, eyebrow, title, subtitle, children, footer }:
                 transition={{ duration: 0.4, delay: 0.05 }}
                 className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-[var(--hunter-border)] bg-[var(--hunter-accent-soft)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--hunter-accent)]"
               >
-                <Icon name="Sparkles" size={11} />
+                <Icon name="Headphones" size={11} />
                 {eyebrow}
               </motion.span>
 

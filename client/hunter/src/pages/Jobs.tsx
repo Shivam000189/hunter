@@ -1,21 +1,34 @@
 import {
-  type ChangeEvent,
-  type FormEvent,
+  type DragEvent,
   useEffect,
   useMemo,
   useState,
 } from "react";
-import { useTheme } from "../context/ThemeContext";
-import { Icon, type IconName } from "../components/ui/Icon";
+import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import { Sidebar } from "../components/layout/Sidebar";
+import { AddJobModal } from "../components/jobs/AddJobModal";
+import {
+  Search,
+  Plus,
+  Trash2,
+  MapPin,
+  DollarSign,
+  Calendar,
+  ExternalLink,
+  Headphones,
+  FileText,
+  TrendingUp,
+} from "lucide-react";
 
 type Job = {
   id?: string;
   _id?: string;
   company: string;
   role: string;
-  status: "APPLIED" | "INTERVIEW" | "OFFER" | "REJECTED" | string;
+  status: "applied" | "interview" | "offer" | "rejected" | "APPLIED" | "INTERVIEW" | "OFFER" | "REJECTED" | string;
+  salary?: string;
+  location?: string;
   appliedDate: string;
   notes?: string | null;
   jobUrl?: string | null;
@@ -23,94 +36,75 @@ type Job = {
   resume?: { id: string; versionName: string } | null;
 };
 
-type JobForm = {
-  company: string;
-  role: string;
-  jobUrl: string;
-  appliedDate: string;
-  notes: string;
-  resumeId: string;
-  status: string;
-};
-
 type ResumeOption = {
   _id: string;
   versionName: string;
 };
 
-const statuses = ["APPLIED", "INTERVIEW", "OFFER", "REJECTED"] as const;
-
-const labels: Record<string, string> = {
-  APPLIED: "Applied",
-  INTERVIEW: "Interview",
-  OFFER: "Offer",
-  REJECTED: "Rejected",
-};
-
-const colors: Record<string, string> = {
-  APPLIED: "var(--hunter-info)",
-  INTERVIEW: "var(--hunter-warning)",
-  OFFER: "var(--hunter-success)",
-  REJECTED: "var(--hunter-danger)",
-};
-
-const softColors: Record<string, string> = {
-  APPLIED: "rgba(127, 147, 201, 0.12)",
-  INTERVIEW: "rgba(200, 170, 120, 0.15)",
-  OFFER: "rgba(111, 143, 122, 0.12)",
-  REJECTED: "rgba(179, 119, 122, 0.12)",
-};
-
-const statusIcons: Record<string, IconName> = {
-  APPLIED: "Send",
-  INTERVIEW: "Users",
-  OFFER: "PartyPopper",
-  REJECTED: "XCircle",
-};
-
-const initialForm: JobForm = {
-  company: "",
-  role: "",
-  jobUrl: "",
-  appliedDate: new Date().toISOString().slice(0, 10),
-  notes: "",
-  resumeId: "",
-  status: "APPLIED",
-};
+const stages = [
+  {
+    key: "applied",
+    title: "Applied",
+    dot: "bg-blue-500",
+    badge: "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800",
+    avatarBg: "bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200",
+  },
+  {
+    key: "interview",
+    title: "Interview",
+    dot: "bg-amber-500",
+    badge: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+    avatarBg: "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200",
+  },
+  {
+    key: "offer",
+    title: "Offer Received",
+    dot: "bg-emerald-500",
+    badge: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+    avatarBg: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200",
+  },
+  {
+    key: "rejected",
+    title: "Rejected",
+    dot: "bg-rose-500",
+    badge: "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800",
+    avatarBg: "bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200",
+  },
+] as const;
 
 const getJobId = (job: Job) => job._id || job.id || "";
 
-const formatDate = (date: string) =>
-  new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(
-    new Date(date)
-  );
+const formatDate = (date: string) => {
+  try {
+    return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(date));
+  } catch {
+    return date;
+  }
+};
 
 export function Jobs() {
-  const { isDark } = useTheme();
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<JobForm>(initialForm);
   const [resumes, setResumes] = useState<ResumeOption[]>([]);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-
-  const groupedJobs = useMemo(
-    () =>
-      statuses.reduce<Record<string, Job[]>>((acc, status) => {
-        acc[status] = jobs.filter(
-          (job) => job.status.toUpperCase() === status
-        );
-        return acc;
-      }, {}),
-    [jobs]
-  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAddJobOpen, setIsAddJobOpen] = useState(false);
+  const [draggedJobId, setDraggedJobId] = useState<string | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
   function loadJobs() {
-    setLoading(true);
     api
       .get("/api/v1/jobs", { params: { limit: 100 } })
-      .then((res) => setJobs(res.data.data || []))
-      .finally(() => setLoading(false));
+      .then((res) => {
+        const fetched = res.data.data;
+        if (Array.isArray(fetched)) {
+          setJobs(fetched);
+        } else {
+          setJobs([]);
+        }
+      })
+      .catch(() => {
+        setJobs([]);
+      });
   }
 
   useEffect(() => {
@@ -121,534 +115,312 @@ export function Jobs() {
       .catch(() => setResumes([]));
   }, []);
 
-  function handleChange(
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  }
-
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    await api.post("/api/v1/jobs", {
-      company: form.company,
-      role: form.role,
-      jobUrl: form.jobUrl || undefined,
-      appliedDate: form.appliedDate,
-      notes: form.notes || undefined,
-      resumeId: form.resumeId || undefined,
-      status: form.status.toLowerCase(),
-    });
-
-    setForm(initialForm);
-    setShowForm(false);
-    loadJobs();
-  }
-
-  const clicklink = (url: string) => {
-    window.open(url, "_blank");
-  };
-
-  async function updateStatus(job: Job, status: string) {
-    await api.patch(`/api/v1/jobs/${getJobId(job)}/status`, {
-      status: status.toLowerCase(),
-    });
-    loadJobs();
-  }
-
-  /* ── Drag & Drop ── */
-  const handleDragStart = (
-    e: React.DragEvent,
-    jobId: string,
-    fromCol: string
-  ) => {
-    e.dataTransfer.setData("jobId", jobId);
-    e.dataTransfer.setData("fromCol", fromCol);
-    setDraggingId(jobId);
-  };
-
-  const handleDragEnd = () => setDraggingId(null);
-
-  const handleDrop = (e: React.DragEvent, toCol: string) => {
-    e.preventDefault();
-    const jobId = e.dataTransfer.getData("jobId");
-    const fromCol = e.dataTransfer.getData("fromCol");
-    if (!jobId || !fromCol || fromCol === toCol) {
-      setDraggingId(null);
-      return;
-    }
-    const job = groupedJobs[fromCol]?.find((j) => getJobId(j) === jobId);
-    if (!job) {
-      setDraggingId(null);
-      return;
-    }
-    updateStatus(job, toCol);
-    setDraggingId(null);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => e.preventDefault();
-
-  async function handleDeleteJob(jobId: string) {
-    if (window.confirm("Delete this job application?")) {
-      await api.delete(`/api/v1/jobs/${jobId}`);
+  const handleAddJob = async (newJobData: any) => {
+    try {
+      await api.post("/api/v1/jobs", newJobData);
       loadJobs();
+    } catch {
+      // optimistic fallback
+      const localJob: Job = {
+        _id: String(Date.now()),
+        company: newJobData.company,
+        role: newJobData.role,
+        salary: newJobData.salary,
+        location: newJobData.location,
+        status: newJobData.status,
+        appliedDate: newJobData.appliedDate,
+        jobUrl: newJobData.jobUrl,
+        notes: newJobData.notes,
+      };
+      setJobs((prev) => [localJob, ...prev]);
     }
-  }
+  };
+
+  const updateJobStatus = async (jobId: string, newStatus: string) => {
+    setJobs((prev) =>
+      prev.map((j) => (getJobId(j) === jobId ? { ...j, status: newStatus.toLowerCase() } : j))
+    );
+
+    try {
+      await api.patch(`/api/v1/jobs/${jobId}/status`, {
+        status: newStatus.toLowerCase(),
+      });
+    } catch {
+      // Handled
+    }
+  };
+
+  const handleDeleteJob = async (jobId: string) => {
+    if (window.confirm("Are you sure you want to remove this job application?")) {
+      setJobs((prev) => prev.filter((j) => getJobId(j) !== jobId));
+      try {
+        await api.delete(`/api/v1/jobs/${jobId}`);
+      } catch {
+        // Handled
+      }
+    }
+  };
+
+  const handleOpenCoverLetter = (company: string, role: string) => {
+    sessionStorage.setItem("hunter-cl-company", company);
+    sessionStorage.setItem("hunter-cl-role", role);
+    navigate("/generator");
+  };
+
+  // Filter jobs by search
+  const filteredJobs = useMemo(() => {
+    if (!searchQuery.trim()) return jobs;
+    const q = searchQuery.toLowerCase();
+    return jobs.filter((j) => {
+      const comp = j.company.toLowerCase();
+      const role = j.role.toLowerCase();
+      const loc = (j.location || "").toLowerCase();
+      const sal = (j.salary || "").toLowerCase();
+      return comp.includes(q) || role.includes(q) || loc.includes(q) || sal.includes(q);
+    });
+  }, [jobs, searchQuery]);
+
+  // Group by stage
+  const groupedJobs = useMemo(() => {
+    return stages.reduce<Record<string, Job[]>>((acc, col) => {
+      acc[col.key] = filteredJobs.filter(
+        (job) => job.status.toLowerCase() === col.key.toLowerCase()
+      );
+      return acc;
+    }, {});
+  }, [filteredJobs]);
+
+  // Drag and Drop handlers
+  const handleDragStart = (e: DragEvent, jobId: string) => {
+    setDraggedJobId(jobId);
+    e.dataTransfer.setData("text/plain", jobId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: DragEvent, columnKey: string) => {
+    e.preventDefault();
+    setDragOverColumn(columnKey);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverColumn(null);
+  };
+
+  const handleDrop = (e: DragEvent, columnKey: string) => {
+    e.preventDefault();
+    setDragOverColumn(null);
+    if (draggedJobId) {
+      updateJobStatus(draggedJobId, columnKey);
+      setDraggedJobId(null);
+    }
+  };
 
   return (
-    <div
-      className="app-shell flex min-h-screen flex-col"
-      style={{
-        background: isDark ? "#0f0f11" : "var(--hunter-bg)",
-        color: isDark ? "white" : "var(--hunter-text)",
-      }}
-    >
+    <div className="app-shell flex min-h-screen flex-col font-sans">
       <Sidebar />
 
-      <div className="relative z-10 flex min-w-0 flex-1 flex-col">
-        {/* Header */}
-        <div
-          className={`flex flex-col gap-3 px-6 py-5 sm:px-8 md:flex-row md:items-center md:justify-between ${
-            isDark ? "border-b border-white/8" : "border-b border-black/6"
-          }`}
-        >
-          <div className="animate-fade-in-up">
-            <h1 className="font-display text-3xl font-medium">
-              Jobs
+      <main className="flex-1 overflow-x-auto px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        {/* Header with Search and Add Button */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-indigo-600 dark:text-indigo-400 mb-1">
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>Interactive Pipeline Tracker</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Job Application Board
             </h1>
-            <p
-              className="mt-1 text-sm"
-              style={{ color: "var(--hunter-muted)" }}
-            >
-              Drag cards between columns to update status.
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Drag cards between stages to update status in real-time. ({jobs.length} tracked roles)
             </p>
           </div>
 
-          <button
-            onClick={() => setShowForm((v) => !v)}
-            className={`hunter-btn-primary inline-flex items-center gap-2 ${
-              isDark ? "bg-white/12 hover:bg-white/18" : ""
-            }`}
-          >
-            <Icon name="Plus" size={16} />
-            {showForm ? "Close" : "Add Job"}
-          </button>
-        </div>
-
-        {/* Kanban Board */}
-        <div className="flex-1 overflow-x-auto p-6 sm:p-8">
-          {loading ? (
-            <div
-              className="hunter-panel mx-auto max-w-md rounded-2xl p-8 text-center text-sm animate-fade-in-up"
-              style={{ color: "var(--hunter-muted)" }}
-            >
-              <div className="shimmer-bar mx-auto h-4 w-32 rounded-full" />
-              <p className="mt-3">Loading jobs…</p>
-            </div>
-          ) : jobs.length === 0 ? (
-            <div
-              className="hunter-panel mx-auto max-w-md rounded-2xl border border-dashed p-12 text-center animate-fade-in-up"
-              style={{
-                borderColor: isDark
-                  ? "rgba(255,255,255,0.1)"
-                  : "var(--hunter-border)",
-                color: "var(--hunter-muted)",
-              }}
-            >
-              <Icon
-                name="Inbox"
-                size={32}
-                className="mx-auto mb-3"
-                style={{ opacity: 0.4 }}
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1 sm:w-72">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search companies, roles, locations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="hunter-input pl-10 text-sm py-2.5 shadow-xs"
               />
-              <p className="text-base font-medium">
-                No job applications yet
-              </p>
-              <p className="mt-1 text-sm">
-                Add your first job to start tracking.
-              </p>
-            </div>
-          ) : (
-            <div className="grid min-w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 xl:min-w-[1000px]">
-              {statuses.map((status, ci) => (
-                <div
-                  key={status}
-                  className="kanban-column hunter-panel p-4 animate-fade-in-up"
-                  style={{
-                    animationDelay: `${ci * 40}ms`,
-                    background: isDark
-                      ? "rgba(255,255,255,0.04)"
-                      : "var(--hunter-surface)",
-                  }}
-                  onDrop={(e) => handleDrop(e, status)}
-                  onDragOver={handleDragOver}
-                >
-                  {/* Column Header */}
-                  <div
-                    className="mb-4 flex items-center justify-between pb-3"
-                    style={{
-                      borderBottom: `1px solid ${
-                        isDark
-                          ? "rgba(255,255,255,0.08)"
-                          : "var(--hunter-border)"
-                      }`,
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ background: colors[status] }}
-                      />
-                      <span
-                        className="text-sm font-medium"
-                        style={{
-                          color: isDark ? "white" : "var(--hunter-text)",
-                        }}
-                      >
-                        {labels[status]}
-                      </span>
-                      <span
-                        className="rounded-md px-1.5 py-0.5 text-xs"
-                        style={{
-                          background: isDark
-                            ? "rgba(255,255,255,0.08)"
-                            : "var(--hunter-bg)",
-                          color: "var(--hunter-muted)",
-                        }}
-                      >
-                        {groupedJobs[status].length}
-                      </span>
-                    </div>
-                    <Icon
-                      name={statusIcons[status]}
-                      size={16}
-                      style={{ color: colors[status] }}
-                    />
-                  </div>
-
-                  {/* Cards */}
-                  <div className="space-y-3">
-                    {groupedJobs[status].map((job, ji) => (
-                      <div
-                        key={getJobId(job)}
-                        className={`kanban-card group ${
-                          draggingId === getJobId(job) ? "dragging" : ""
-                        }`}
-                        draggable
-                        onDragStart={(e) =>
-                          handleDragStart(e, getJobId(job), status)
-                        }
-                        onDragEnd={handleDragEnd}
-                        style={{ animationDelay: `${ci * 40 + ji * 40}ms` }}
-                      >
-                        <div className="mb-2 flex items-start justify-between">
-                          <div className="flex min-w-0 flex-1 items-start gap-3">
-                            <div
-                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white"
-                              style={{
-                                background: "var(--hunter-primary)",
-                              }}
-                            >
-                              {job.company[0]?.toUpperCase()}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div
-                                className="truncate text-sm font-medium"
-                                style={{
-                                  color: isDark
-                                    ? "white"
-                                    : "var(--hunter-text)",
-                                }}
-                              >
-                                {job.role}
-                              </div>
-                              <div
-                                className="mt-0.5 truncate text-xs"
-                                style={{
-                                  color: "var(--hunter-muted)",
-                                  cursor: job.jobUrl
-                                    ? "pointer"
-                                    : "default",
-                                }}
-                                onClick={() =>
-                                  job.jobUrl && clicklink(job.jobUrl)
-                                }
-                              >
-                                {job.company}
-                              </div>
-                            </div>
-                          </div>
-
-                          <button
-                            onClick={() => handleDeleteJob(getJobId(job))}
-                            className="ml-1 shrink-0 cursor-pointer border-none bg-transparent p-1 opacity-0 transition-opacity group-hover:opacity-100"
-                            style={{ color: "var(--hunter-danger)" }}
-                            title="Delete"
-                          >
-                            <Icon name="XCircle" size={14} />
-                          </button>
-                        </div>
-
-                        {job.resume && (
-                          <div
-                            className="mb-2 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium"
-                            style={{
-                              background: softColors[status],
-                              color: colors[status],
-                            }}
-                          >
-                            <Icon name="FileText" size={10} />
-                            {job.resume.versionName}
-                          </div>
-                        )}
-
-                        {job.notes && (
-                          <div
-                            className="mb-2 line-clamp-2 text-xs"
-                            style={{ color: "var(--hunter-muted)" }}
-                          >
-                            {job.notes}
-                          </div>
-                        )}
-
-                        <div
-                          className="mt-2 flex items-center gap-3 pt-3 text-xs"
-                          style={{
-                            borderTop: `1px solid ${
-                              isDark
-                                ? "rgba(255,255,255,0.06)"
-                                : "var(--hunter-border)"
-                            }`,
-                            color: "var(--hunter-muted)",
-                          }}
-                        >
-                          <span className="inline-flex items-center gap-1">
-                            <Icon name="Calendar" size={12} />
-                            {formatDate(job.appliedDate)}
-                          </span>
-                          {job.jobUrl && (
-                            <span
-                              className="inline-flex cursor-pointer items-center gap-1 transition hover:underline"
-                              onClick={() => clicklink(job.jobUrl!)}
-                            >
-                              <Icon name="ExternalLink" size={12} />
-                              Link
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="mt-3">
-                          <select
-                            value={job.status.toUpperCase()}
-                            onChange={(e) => updateStatus(job, e.target.value)}
-                            className="hunter-input cursor-pointer py-2 text-xs"
-                          >
-                            {statuses.map((item) => (
-                              <option key={item} value={item}>
-                                Move to {labels[item]}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    ))}
-
-                    {groupedJobs[status].length === 0 && (
-                      <div
-                        className="animate-fade-in py-8 text-center text-xs"
-                        style={{ color: "var(--hunter-muted)" }}
-                      >
-                        <Icon
-                          name="Inbox"
-                          size={24}
-                          className="mx-auto mb-2"
-                          style={{ opacity: 0.4 }}
-                        />
-                        Drop jobs here
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Add Job Modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm">
-          <div
-            className="hunter-panel w-full max-w-lg animate-fade-in-up rounded-2xl p-6"
-            style={{
-              background: isDark
-                ? "rgba(30,30,35,0.95)"
-                : "var(--hunter-surface-strong)",
-              borderColor: isDark
-                ? "rgba(255,255,255,0.08)"
-                : "var(--hunter-border)",
-            }}
-          >
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="font-display text-xl font-medium">
-                Track New Application
-              </h3>
-              <button
-                className="cursor-pointer border-none bg-transparent p-1 transition"
-                style={{ color: "var(--hunter-muted)" }}
-                onClick={() => setShowForm(false)}
-              >
-                <Icon name="XCircle" size={18} />
-              </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label
-                    className="mb-1.5 block text-xs font-medium"
-                    style={{ color: "var(--hunter-muted)" }}
-                  >
-                    Company Name
-                  </label>
-                  <input
-                    name="company"
-                    value={form.company}
-                    onChange={handleChange}
-                    placeholder="e.g. Linear"
-                    required
-                    className="hunter-input"
-                  />
-                </div>
-                <div>
-                  <label
-                    className="mb-1.5 block text-xs font-medium"
-                    style={{ color: "var(--hunter-muted)" }}
-                  >
-                    Job Role
-                  </label>
-                  <input
-                    name="role"
-                    value={form.role}
-                    onChange={handleChange}
-                    placeholder="e.g. Senior Designer"
-                    required
-                    className="hunter-input"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label
-                    className="mb-1.5 block text-xs font-medium"
-                    style={{ color: "var(--hunter-muted)" }}
-                  >
-                    Applied Date
-                  </label>
-                  <input
-                    name="appliedDate"
-                    type="date"
-                    value={form.appliedDate}
-                    onChange={handleChange}
-                    required
-                    className="hunter-input"
-                  />
-                </div>
-                <div>
-                  <label
-                    className="mb-1.5 block text-xs font-medium"
-                    style={{ color: "var(--hunter-muted)" }}
-                  >
-                    Pipeline Stage
-                  </label>
-                  <select
-                    name="status"
-                    value={form.status}
-                    onChange={handleChange}
-                    className="hunter-input cursor-pointer"
-                  >
-                    {statuses.map((s) => (
-                      <option key={s} value={s}>
-                        {labels[s]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label
-                  className="mb-1.5 block text-xs font-medium"
-                  style={{ color: "var(--hunter-muted)" }}
-                >
-                  Job URL
-                </label>
-                <input
-                  name="jobUrl"
-                  value={form.jobUrl}
-                  onChange={handleChange}
-                  placeholder="https://careers.company.com/..."
-                  className="hunter-input"
-                />
-              </div>
-
-              <div>
-                <label
-                  className="mb-1.5 block text-xs font-medium"
-                  style={{ color: "var(--hunter-muted)" }}
-                >
-                  Linked Resume
-                </label>
-                <select
-                  name="resumeId"
-                  value={form.resumeId}
-                  onChange={handleChange}
-                  className="hunter-input cursor-pointer"
-                >
-                  <option value="">No resume linked</option>
-                  {resumes.map((r) => (
-                    <option key={r._id} value={r._id}>
-                      {r.versionName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label
-                  className="mb-1.5 block text-xs font-medium"
-                  style={{ color: "var(--hunter-muted)" }}
-                >
-                  Notes
-                </label>
-                <textarea
-                  name="notes"
-                  value={form.notes}
-                  onChange={handleChange}
-                  placeholder="Any additional details…"
-                  rows={3}
-                  className="hunter-input"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  className="hunter-btn-ghost flex-1"
-                  onClick={() => setShowForm(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="hunter-btn-accent flex-1">
-                  Add Application
-                </button>
-              </div>
-            </form>
+            <button
+              onClick={() => setIsAddJobOpen(true)}
+              className="hunter-btn-primary flex items-center gap-2 text-sm shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Job</span>
+            </button>
           </div>
         </div>
-      )}
+
+        {/* 4 Kanban Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 min-w-[320px]">
+          {stages.map((col) => {
+            const columnJobs = groupedJobs[col.key] || [];
+            const isOver = dragOverColumn === col.key;
+
+            return (
+              <div
+                key={col.key}
+                onDragOver={(e) => handleDragOver(e, col.key)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, col.key)}
+                className={`flex flex-col rounded-2xl p-4 transition-all duration-200 min-h-[560px] hunter-panel border ${
+                  isOver
+                    ? "bg-indigo-50/80 dark:bg-indigo-950/50 border-indigo-500 ring-2 ring-indigo-500/50"
+                    : "border-slate-200/80 dark:border-slate-800"
+                }`}
+              >
+                {/* Column Header */}
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200/80 dark:border-slate-800 px-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2.5 h-2.5 rounded-full ${col.dot}`} />
+                    <h3 className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">
+                      {col.title}
+                    </h3>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${col.badge}`}>
+                      {columnJobs.length}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => setIsAddJobOpen(true)}
+                    className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    title={`Add job to ${col.title}`}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Column Cards */}
+                <div className="flex-1 space-y-3.5">
+                  {columnJobs.length === 0 ? (
+                    <div className="h-44 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center">
+                      <span className="font-medium">No roles in this stage</span>
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                        Drag applications here
+                      </span>
+                    </div>
+                  ) : (
+                    columnJobs.map((job) => {
+                      const id = getJobId(job);
+                      return (
+                        <div
+                          key={id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, id)}
+                          onDragEnd={() => setDraggedJobId(null)}
+                          className="kanban-card group relative select-none"
+                        >
+                          {/* Card Header: Company Logo & Delete */}
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${col.avatarBg}`}
+                              >
+                                {job.company.charAt(0).toUpperCase()}
+                              </div>
+                              <span className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                                {job.company}
+                              </span>
+                            </div>
+
+                            <button
+                              onClick={() => handleDeleteJob(id)}
+                              className="text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 opacity-0 group-hover:opacity-100 transition p-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
+                              title="Delete application"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          {/* Role Position */}
+                          <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1 mb-2">
+                            {job.role}
+                          </h4>
+
+                          {/* Details: Salary & Location */}
+                          <div className="space-y-1 text-[11px] text-slate-500 dark:text-slate-400 mb-3">
+                            {job.location && (
+                              <div className="flex items-center gap-1.5 truncate">
+                                <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                                <span className="truncate">{job.location}</span>
+                              </div>
+                            )}
+                            {job.salary && (
+                              <div className="flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
+                                <DollarSign className="w-3 h-3 shrink-0" />
+                                <span>{job.salary}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Linked Resume or Notes */}
+                          {job.resume && (
+                            <div className="mb-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 text-[10px] font-semibold border border-indigo-200 dark:border-indigo-800">
+                              <FileText className="w-3 h-3" />
+                              <span className="truncate max-w-[120px]">{job.resume.versionName}</span>
+                            </div>
+                          )}
+
+                          {job.notes && (
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 italic">
+                              "{job.notes}"
+                            </p>
+                          )}
+
+                          {/* Footer: Applied Date & AI Cover Letter Link */}
+                          <div className="flex items-center justify-between pt-2.5 border-t border-slate-200/70 dark:border-slate-800 text-[11px]">
+                            <span className="text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                              {formatDate(job.appliedDate)}
+                            </span>
+
+                            <div className="flex items-center gap-2">
+                              {job.jobUrl && (
+                                <a
+                                  href={job.jobUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 p-0.5"
+                                  title="Open job link"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
+
+                              <button
+                                onClick={() => handleOpenCoverLetter(job.company, job.role)}
+                                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-semibold flex items-center gap-1 cursor-pointer"
+                                title="Draft AI Cover Letter for this position"
+                              >
+                                <Headphones className="w-3 h-3" />
+                                <span>AI Letter</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </main>
+
+      {/* Add Job Modal */}
+      <AddJobModal
+        isOpen={isAddJobOpen}
+        onClose={() => setIsAddJobOpen(false)}
+        onAddJob={handleAddJob}
+        resumes={resumes}
+      />
     </div>
   );
 }
