@@ -2,113 +2,84 @@ import { Request, Response } from "express";
 import { registerUser, loginUser, createGuestUser, getMe } from "../services/auth.service";
 import { generateToken } from "../utils/jwt";
 import { AuthRequest } from "../middleware/auth.middleware";
+import { asyncHandler } from "../utils/asyncHandler";
 
+// Register
+export const register = asyncHandler(async (req: Request, res: Response) => {
+  const { name, email, password } = req.body;
 
+  const user = await registerUser(name, email, password);
 
-//Register
-export const register = async (req: Request, res: Response) => {
-  try {
-    const { name, email, password } = req.body;
+  const token = generateToken(user.id);
 
-    const user = await registerUser(name, email, password);
-
-    const token = generateToken(user.id);
-
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      data: {
-        _id: user.id,
-        name: user.name,
-        email: user.email,
-        token,
+  res.status(201).json({
+    success: true,
+    message: "User registered successfully",
+    data: {
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      token,
     },
   });
-  } catch (error: any) {
-    res.status(error.statusCode || error.status || 400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+});
 
+// Login
+export const login = asyncHandler(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
 
-//Login
-export const login = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
+  const user = await loginUser(email, password);
+  const token = generateToken(user.id);
 
-    const user = await loginUser(email, password);
-    const token = generateToken(user.id);
+  res.json({
+    success: true,
+    token,
+    expiresIn: "24h",
+    user: {
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+    },
+  });
+});
 
-    res.json({
-      success: true,
-      token,
-      expiresIn: "24h",
-      user: {
-        _id: user.id,
-        name: user.name,
-        email: user.email,
-      },
-    });
-  } catch (err: any) {
-    res.status(err.statusCode || err.status || 400).json({
-      success: false,
-      message: err.message,
-    });
-  }
-};
+// Guest Login
+export const guestLogin = asyncHandler(async (_req: Request, res: Response) => {
+  const user = await createGuestUser();
+  const token = generateToken(user.id);
 
-export const guestLogin = async (_req: Request, res: Response) => {
-  try {
-    const user = await createGuestUser();
-    const token = generateToken(user.id);
-
-    res.status(201).json({
-      success: true,
-      token,
-      expiresIn: "24h",
-      user: {
-        _id: user.id,
-        name: user.name,
-        email: user.email,
-      },
-    });
-  } catch (err: any) {
-    res.status(err.statusCode || err.status || 500).json({
-      success: false,
-      message: err.message,
-    });
-  }
-};
-
+  res.status(201).json({
+    success: true,
+    token,
+    expiresIn: "24h",
+    user: {
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+    },
+  });
+});
 
 // Get me 
-export const me = async (req:AuthRequest, res:Response) => {
-  try{
-    const user = await getMe(req.userId!);
+export const me = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const user = await getMe(req.userId!);
 
-    res.json({
-      success:true,
-      data:{
-        _id:user?.id,
-        name:user?.name,
-        email:user?.email,
-        googleId:user?.googleId,
-        createdAt: user?.createdAt,
-      },
-    });
-  }
-  catch(err:any){
-    res.status(500).json({success:false});
-  }
-}
+  res.json({
+    success: true,
+    data: {
+      _id: user?.id,
+      name: user?.name,
+      email: user?.email,
+      googleId: user?.googleId,
+      createdAt: user?.createdAt,
+    },
+  });
+});
 
 // Logout
-
-export const logout = async (_req:Request, res:Response) => {
-      res.json({
-        success: true,
-        message: "Logged out successfully",
-      });
-}
+export const logout = asyncHandler(async (_req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: "Logged out successfully",
+  });
+});

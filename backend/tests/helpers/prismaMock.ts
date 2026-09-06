@@ -37,6 +37,14 @@ export const mockPrisma = {
     findMany: vi.fn(),
     findUnique: vi.fn(),
   },
+  interview: {
+    findFirst: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  },
+  message: {
+    create: vi.fn(),
+  },
   reminderSettings: {
     create: vi.fn(),
     upsert: vi.fn(),
@@ -69,6 +77,10 @@ const prismaMocks = [
   mockPrisma.coverLetter.create,
   mockPrisma.coverLetter.findMany,
   mockPrisma.coverLetter.findUnique,
+  mockPrisma.interview.findFirst,
+  mockPrisma.interview.create,
+  mockPrisma.interview.update,
+  mockPrisma.message.create,
   mockPrisma.reminderSettings.create,
   mockPrisma.reminderSettings.upsert,
   mockPrisma.reminderLog.create,

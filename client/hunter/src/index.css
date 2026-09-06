@@ -371,6 +371,33 @@ button {
   }
 }
 
+@keyframes floatCard1 {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes floatCard2 {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes floatCard3 {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
 @keyframes pulseGlow {
   0%, 100% {
     opacity: 0.6;
@@ -392,6 +419,18 @@ button {
 
 .animate-float-slow {
   animation: floatSlow 6s ease-in-out infinite;
+}
+
+.animate-float-1 {
+  animation: floatCard1 3.2s ease-in-out infinite;
+}
+
+.animate-float-2 {
+  animation: floatCard2 3.8s ease-in-out 0.6s infinite;
+}
+
+.animate-float-3 {
+  animation: floatCard3 3.5s ease-in-out 1.2s infinite;
 }
 
 .animate-pulse-glow {
