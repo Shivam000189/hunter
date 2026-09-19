@@ -486,3 +486,17 @@ input[type="range"].hunter-range::-webkit-slider-thumb:hover {
   background: var(--hunter-muted-soft);
 }
 
+/* Ensure all blue buttons and primary buttons strictly have crisp white text */
+button[class*="bg-blue-"],
+.hunter-primary-btn,
+.hunter-btn-primary {
+  color: #ffffff !important;
+}
+
+button[class*="bg-blue-"] *,
+.hunter-primary-btn *,
+.hunter-btn-primary * {
+  color: #ffffff !important;
+}
+
+

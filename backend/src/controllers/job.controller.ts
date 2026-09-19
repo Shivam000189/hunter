@@ -155,3 +155,43 @@ export const deleteJob = asyncHandler(async (req: AuthRequest, res: Response) =>
     message: "Job application deleted successfully",
   });
 });
+
+// QUICK-ADD (Browser Extension)
+export const quickAddJob = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { company, role, jobUrl, notes, resumeId, appliedDate } = req.body;
+
+  const payload = {
+    company: String(company || "").trim(),
+    role: String(role || "").trim(),
+    jobUrl: jobUrl ? String(jobUrl).trim() : undefined,
+    notes: notes ? String(notes).trim() : undefined,
+    resumeId: resumeId ? String(resumeId).trim() : undefined,
+    appliedDate: appliedDate ? String(appliedDate) : new Date().toISOString(),
+  };
+
+  const parsed = createJobSchema.safeParse(payload);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      message: parsed.error.issues,
+    });
+  }
+
+  const job = await jobService.createJob(req.userId!, parsed.data);
+
+  res.status(201).json({
+    success: true,
+    message: "Job clipped successfully",
+    data: {
+      id: job.id,
+      _id: job.id,
+      company: job.company,
+      role: job.role,
+      status: job.status.toLowerCase(),
+      jobUrl: job.jobUrl,
+      appliedDate: job.appliedDate,
+      createdAt: job.createdAt,
+    },
+  });
+});

@@ -21,6 +21,10 @@ app.use(
         return callback(null, true);
       }
 
+      if (origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://")) {
+        return callback(null, true);
+      }
+
       const normalizedOrigin = origin.replace(/\/$/, "");
 
       if (env.corsOrigins.includes(normalizedOrigin)) {

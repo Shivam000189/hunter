@@ -109,4 +109,48 @@ describe("job routes", () => {
     });
     expect(mockPrisma.job.findUnique).not.toHaveBeenCalled();
   });
+
+  it("clips a job via quick-add defaulting appliedDate when not provided", async () => {
+    const createdAt = new Date("2026-07-01T00:00:00.000Z");
+    mockTx.job.create.mockResolvedValue({
+      id: "job-quick-1",
+      company: "Stripe",
+      role: "Staff Infrastructure Engineer",
+      status: JobStatus.APPLIED,
+      appliedDate: createdAt,
+      createdAt,
+      resumeId: null,
+      userId: "user-1",
+      jobUrl: "https://stripe.com/jobs/1",
+      notes: "Clipped via Hunter extension",
+    });
+
+    const response = await request(app)
+      .post("/api/v1/jobs/quick-add")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        company: "Stripe",
+        role: "Staff Infrastructure Engineer",
+        jobUrl: "https://stripe.com/jobs/1",
+        notes: "Clipped via Hunter extension",
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.success).toBe(true);
+    expect(response.body.message).toBe("Job clipped successfully");
+    expect(response.body.data.company).toBe("Stripe");
+    expect(response.body.data.role).toBe("Staff Infrastructure Engineer");
+  });
+
+  it("rejects quick-add when required company or role is missing", async () => {
+    const response = await request(app)
+      .post("/api/v1/jobs/quick-add")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        role: "Frontend Engineer",
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+  });
 });

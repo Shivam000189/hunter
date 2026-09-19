@@ -8,6 +8,7 @@ router.use(authMiddleware);
 
 router.get("/", jobController.getJobs);
 router.post("/", jobController.createJob);
+router.post("/quick-add", jobController.quickAddJob);
 
 router.get("/:id", jobController.getJob);
 router.patch("/:id", jobController.updateJob);

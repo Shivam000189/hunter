@@ -23,11 +23,11 @@ function getPasswordStrength(password: string) {
 }
 
 const strengthMeta = [
-  { label: "Too short", color: "var(--hunter-danger)" },
-  { label: "Weak", color: "var(--hunter-danger)" },
-  { label: "Okay", color: "var(--hunter-warning)" },
-  { label: "Good", color: "var(--hunter-accent)" },
-  { label: "Strong", color: "var(--hunter-success)" },
+  { label: "Too short", color: "#f43f5e" },
+  { label: "Weak", color: "#f43f5e" },
+  { label: "Okay", color: "#f59e0b" },
+  { label: "Good", color: "#2563eb" },
+  { label: "Strong", color: "#059669" },
 ];
 
 export function Signup() {
@@ -90,9 +90,9 @@ export function Signup() {
       title="Create your account"
       subtitle="Set up your pipeline in under a minute — no card required."
       footer={
-        <p className="text-center text-xs sm:text-[13px] text-[var(--hunter-muted)]">
+        <p className="text-center text-xs sm:text-[13px] text-slate-500 dark:text-slate-400">
           Already have an account?{" "}
-          <Link to="/login" className="font-medium text-[var(--hunter-text)] hover:underline">
+          <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline">
             Sign in
           </Link>
         </p>
@@ -105,20 +105,20 @@ export function Signup() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center gap-2.5 rounded-2xl border border-[var(--hunter-border)] bg-[var(--hunter-surface)] px-5 py-8 text-center"
+            className="flex flex-col items-center gap-2.5 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 px-5 py-8 text-center"
           >
             <motion.span
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 260, damping: 16 }}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-status-offer-soft status-offer"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 6 9 17l-5-5" />
               </svg>
             </motion.span>
-            <p className="font-medium text-sm">Account created</p>
-            <p className="text-xs text-[var(--hunter-muted)]">Taking you to sign in…</p>
+            <p className="font-bold text-sm text-slate-900 dark:text-white">Account created</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Taking you to sign in…</p>
           </motion.div>
         ) : (
           <motion.form
@@ -135,9 +135,9 @@ export function Signup() {
               {error && (
                 <motion.div
                   initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                  animate={{ opacity: 1, height: "auto", marginBottom: 2 }}
+                  animate={{ opacity: 1, height: "auto", marginBottom: 4 }}
                   exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                  className="overflow-hidden rounded-xl border border-[var(--hunter-danger)]/30 bg-[var(--hunter-danger)]/10 px-3 py-2 text-xs text-[var(--hunter-danger)]"
+                  className="overflow-hidden rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 px-3.5 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300 shadow-2xs"
                 >
                   {error}
                 </motion.div>
@@ -210,7 +210,7 @@ export function Signup() {
                         />
                       ))}
                     </div>
-                    <p className="mt-0.5 text-[11px] text-[var(--hunter-muted)]">
+                    <p className="mt-0.5 text-[11px] text-slate-500 font-medium">
                       {strengthMeta[strength].label}
                     </p>
                   </motion.div>
@@ -235,7 +235,7 @@ export function Signup() {
                     initial={{ opacity: 0, y: -2 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    className="mt-1 text-[11px] text-[var(--hunter-danger)]"
+                    className="mt-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400"
                   >
                     Passwords don't match
                   </motion.p>
@@ -243,13 +243,14 @@ export function Signup() {
               </AnimatePresence>
             </div>
 
-            <motion.div variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }} className="pt-0.5">
+            <motion.div variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }} className="pt-1">
               <motion.button
                 whileHover={{ y: -1 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={loading}
-                className="hunter-primary-btn flex w-full items-center justify-center gap-2 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 py-2.5 px-4 text-sm font-semibold !text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-xs hover:shadow-sm transition-all duration-150 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ color: "#ffffff" }}
               >
                 {loading ? (
                   <motion.span
@@ -258,7 +259,7 @@ export function Signup() {
                     className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white"
                   />
                 ) : (
-                  "Create account"
+                  <span className="!text-white" style={{ color: "#ffffff" }}>Create account</span>
                 )}
               </motion.button>
             </motion.div>

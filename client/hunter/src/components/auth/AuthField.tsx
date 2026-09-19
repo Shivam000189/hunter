@@ -84,8 +84,8 @@ export function AuthField({
 
   return (
     <motion.div variants={fieldVariants} custom={delay}>
-      <div className="mb-1 flex items-center justify-between">
-        <label htmlFor={name} className="block text-[13px] font-medium">
+      <div className="mb-1.5 flex items-center justify-between">
+        <label htmlFor={name} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 tracking-tight">
           {label}
         </label>
         {rightSlot}
@@ -93,14 +93,14 @@ export function AuthField({
 
       <motion.div
         animate={{
-          borderColor: focused ? "var(--hunter-accent)" : "var(--hunter-border)",
-          boxShadow: focused ? "0 0 0 3px rgba(111, 127, 118, 0.12)" : "0 0 0 0 rgba(0,0,0,0)",
+          borderColor: focused ? "#2563eb" : "var(--hunter-border)",
+          boxShadow: focused ? "0 0 0 3px rgba(37, 99, 235, 0.15)" : "none",
         }}
-        transition={{ duration: 0.2 }}
-        className="flex items-center gap-2 rounded-xl border bg-[var(--hunter-surface)] px-3"
-        style={{ borderColor: "var(--hunter-border)" }}
+        transition={{ duration: 0.15 }}
+        className="flex items-center gap-2 rounded-xl border bg-white dark:bg-slate-900 px-3 shadow-2xs"
+        style={{ borderColor: focused ? "#2563eb" : "var(--hunter-border)" }}
       >
-        <span className="text-[var(--hunter-muted)] shrink-0">
+        <span className={`shrink-0 transition-colors ${focused ? "text-blue-600" : "text-slate-400 dark:text-slate-500"}`}>
           <Glyph />
         </span>
         <input
@@ -113,13 +113,13 @@ export function AuthField({
           onBlur={() => setFocused(false)}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          className="w-full bg-transparent py-2.5 text-[13.5px] outline-none placeholder:text-[var(--hunter-muted)] placeholder:text-[13px]"
+          className="w-full bg-transparent py-2.5 text-sm font-normal text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="text-[var(--hunter-muted)] transition-colors hover:text-[var(--hunter-text)] p-0.5 shrink-0"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-0.5 shrink-0"
             aria-label={showPassword ? "Hide password" : "Show password"}
             tabIndex={-1}
           >

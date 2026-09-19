@@ -96,8 +96,13 @@ export const startInterview = async (userId: string, resumeText: string, jobDesc
     include: { conversation: { orderBy: { createdAt: "asc" } } },
   });
 
-  return interview;
+  return formatInterviewResponse(interview);
 };
+
+const formatInterviewResponse = (interview: any) => ({
+  ...interview,
+  totalQuestions: MAX_QUESTIONS,
+});
 
 export const answerInterview = async (userId: string, id: string, answer: string) => {
   const cleanAnswer = answer.trim();
@@ -123,7 +128,7 @@ export const answerInterview = async (userId: string, id: string, answer: string
       )) || "You communicated clearly and showed useful practical thinking. Add more measurable impact and structure your answers with context, action, and result. Score: 75/100.";
     const scoreMatch = feedback.match(/(\d{1,3})\s*\/\s*100/);
     const score = Math.min(100, Math.max(0, Number(scoreMatch?.[1] || 75)));
-    return prisma.interview.update({
+    const completed = await prisma.interview.update({
       where: { id },
       data: {
         status: "COMPLETED",
@@ -133,13 +138,18 @@ export const answerInterview = async (userId: string, id: string, answer: string
       },
       include: { conversation: { orderBy: { createdAt: "asc" } } },
     });
+    return formatInterviewResponse(completed);
   }
 
   const question = questionSet[answeredQuestions]?.question;
   if (!question) throw { status: 500, message: "The next interview question is unavailable" };
   await prisma.message.create({ data: { interviewId: id, message: question, type: "ASSISTANT" } });
   await prisma.interview.update({ where: { id }, data: { answerFeedback: coverage } });
-  return getInterview(userId, id);
+  const updated = await getInterview(userId, id);
+  return formatInterviewResponse(updated);
 };
 
-export const getInterviewById = (userId: string, id: string) => getInterview(userId, id);
+export const getInterviewById = async (userId: string, id: string) => {
+  const interview = await getInterview(userId, id);
+  return formatInterviewResponse(interview);
+};
