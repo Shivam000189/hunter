@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../api/client";
 import { Sidebar } from "../components/layout/Sidebar";
 import {
@@ -7,16 +7,16 @@ import {
   Volume2,
   VolumeX,
   Play,
-  CheckCircle2,
   ArrowRight,
-  RefreshCw,
-  Lightbulb,
   FastForward,
-  TrendingUp,
-  Sliders,
+  RefreshCw,
   Download,
-  FileText,
   Sparkles,
+  CheckCircle2,
+  PhoneOff,
+  Keyboard,
+  Calendar,
+  FileText,
 } from "lucide-react";
 
 type Difficulty = "easy" | "medium" | "hard";
@@ -35,16 +35,21 @@ type KeywordFeedback = {
 
 type Evaluation = {
   overallScore: number;
-  clarityScore: number;
-  relevanceScore: number;
-  strengths: string;
-  areasToImprove: string;
-  feedback?: string;
+  readiness: string | null;
+  feedback: string;
 };
 
 type ResumeOption = {
   id: string;
   versionName: string;
+};
+
+type OrbState = "speaking" | "listening" | "thinking" | "idle";
+
+const formatClock = (totalSeconds: number) => {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 };
 
 export function AiInterview() {
@@ -64,13 +69,20 @@ export function AiInterview() {
   const [latestFeedback, setLatestFeedback] = useState<KeywordFeedback | null>(null);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [loading, setLoading] = useState(false);
+  const [typedMode, setTypedMode] = useState(false);
 
-  // Audio Speech Recognition (Speech-to-Text)
+  // Call-style UI state
+  const [elapsed, setElapsed] = useState(0);
+  const [interim, setInterim] = useState("");
+  const [speakerOn, setSpeakerOn] = useState(true);
+
+  // Speech recognition (speech-to-text)
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
-  // Audio Speech Synthesis (Text-to-Speech)
+  // Speech synthesis (text-to-speech)
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const speakerOnRef = useRef(true);
 
   useEffect(() => {
     api
@@ -91,7 +103,16 @@ export function AiInterview() {
       .catch(() => undefined);
   }, []);
 
-  // Initialize Web Speech API Speech Recognition
+  // Elapsed call timer
+  useEffect(() => {
+    if (sessionStage !== "active") return;
+
+    setElapsed(0);
+    const interval = window.setInterval(() => setElapsed((prev) => prev + 1), 1000);
+    return () => window.clearInterval(interval);
+  }, [sessionStage]);
+
+  // Web Speech API Speech Recognition
   useEffect(() => {
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -103,21 +124,34 @@ export function AiInterview() {
       recognition.lang = "en-US";
 
       recognition.onresult = (event: any) => {
-        let transcript = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
+        let finalText = "";
+        let interimText = "";
+
+        for (let i = 0; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (result.isFinal) {
+            finalText += result[0].transcript;
+          } else {
+            interimText += result[0].transcript;
+          }
         }
-        if (transcript) {
-          setCurrentAnswer((prev) => (prev ? `${prev.trim()} ${transcript.trim()}` : transcript.trim()));
+
+        if (finalText) {
+          setCurrentAnswer((prev) =>
+            prev ? `${prev.trim()} ${finalText.trim()}` : finalText.trim()
+          );
         }
+        setInterim(interimText);
       };
 
       recognition.onerror = () => {
         setIsListening(false);
+        setInterim("");
       };
 
       recognition.onend = () => {
         setIsListening(false);
+        setInterim("");
       };
 
       recognitionRef.current = recognition;
@@ -133,11 +167,29 @@ export function AiInterview() {
       }
       stopSpeaking();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-read each new question aloud, like a live interviewer
+  useEffect(() => {
+    if (sessionStage === "active" && currentQuestion) {
+      speakQuestion(currentQuestion);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentQuestion, sessionStage]);
+
+  const orbState: OrbState = loading
+    ? "thinking"
+    : isSpeaking
+    ? "speaking"
+    : isListening
+    ? "listening"
+    : "idle";
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
-      alert("Speech recognition is not supported in this browser. You can type your answer directly.");
+      alert("Speech recognition is not supported in this browser. You can type your answer instead.");
+      setTypedMode(true);
       return;
     }
 
@@ -156,11 +208,10 @@ export function AiInterview() {
 
   const speakQuestion = (text: string) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      alert("Text-to-speech audio is not supported in this browser.");
       return;
     }
 
-    if (isSpeaking) {
+    if (!speakerOnRef.current) {
       stopSpeaking();
       return;
     }
@@ -182,11 +233,25 @@ export function AiInterview() {
     }
   };
 
+  const toggleSpeaker = () => {
+    const next = !speakerOn;
+    speakerOnRef.current = next;
+    setSpeakerOn(next);
+
+    if (!next) {
+      stopSpeaking();
+    } else if (sessionStage === "active" && currentQuestion) {
+      // Re-read the current question when the speaker is turned back on
+      window.setTimeout(() => speakQuestion(currentQuestion), 0);
+    }
+  };
+
   const handleStart = async () => {
     setLoading(true);
     setInterviewId(null);
     setCurrentQuestionIndex(0);
     setCurrentAnswer("");
+    setInterim("");
     setConversation([]);
     setLatestFeedback(null);
     setEvaluation(null);
@@ -233,6 +298,7 @@ export function AiInterview() {
   const handleNextOrSubmit = async () => {
     const nextAns = currentAnswer.trim() || "Completed response using STAR methodology.";
     setCurrentAnswer("");
+    setInterim("");
     setLoading(true);
     stopSpeaking();
     if (isListening && recognitionRef.current) {
@@ -255,14 +321,10 @@ export function AiInterview() {
         }
 
         if (serverData?.status === "COMPLETED") {
-          const overallScore = serverData.score || 85;
           setEvaluation({
-            overallScore,
-            clarityScore: Math.round((overallScore / 20) * 10) / 10,
-            relevanceScore: Math.round(((overallScore + 5) / 21) * 10) / 10,
-            strengths: "Articulated architectural decisions and trade-offs clearly using situational context.",
-            areasToImprove: "Quantify metrics and business outcomes (latency, throughput, cost reductions) more consistently.",
-            feedback: serverData.feedback,
+            overallScore: serverData.score || 0,
+            readiness: serverData.readiness || null,
+            feedback: serverData.feedback || "Interview completed.",
           });
           setSessionStage("results");
           setLoading(false);
@@ -295,14 +357,10 @@ export function AiInterview() {
 
     if (currentQuestionIndex + 1 >= totalQuestions) {
       setConversation(updatedConv);
-      const overall = difficulty === "hard" ? 86 : 92;
       setEvaluation({
-        overallScore: overall,
-        clarityScore: difficulty === "hard" ? 4.3 : 4.7,
-        relevanceScore: 4.5,
-        strengths: "Structured technical communication and clear problem-solving thought process.",
-        areasToImprove: "Provide quantified outcomes and metric improvements for unexpected edge cases.",
-        feedback: "Great job completing the interview simulation! You communicated key engineering trade-offs effectively.",
+        overallScore: 0,
+        readiness: null,
+        feedback: "Offline practice session completed. Server evaluation was unavailable, so no score was recorded.",
       });
       setSessionStage("results");
     } else {
@@ -323,31 +381,45 @@ export function AiInterview() {
     handleNextOrSubmit();
   };
 
+  const endSession = () => {
+    if (window.confirm("End the interview now? Your answers so far will not be evaluated.")) {
+      stopSpeaking();
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
+      setIsListening(false);
+      setSessionStage("idle");
+      setInterviewId(null);
+    }
+  };
+
   const downloadReport = () => {
     const lines = [
       `# Hunter AI Mock Interview Report`,
       ``,
       `**Target Role**: ${role}`,
       `**Difficulty**: ${difficulty.toUpperCase()}`,
-      `**Date**: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
+      `**Date**: ${new Date().toLocaleString()}`,
       `**Overall Score**: ${evaluation?.overallScore ?? 0}/100`,
+      `**Readiness**: ${evaluation?.readiness || "Not evaluated"}`,
       ``,
       `---`,
       ``,
       `## AI Evaluator Feedback`,
       evaluation?.feedback || "Solid mock interview session. Key technical concepts articulated well.",
       ``,
-      `**Key Strengths**: ${evaluation?.strengths}`,
-      `**High Impact Recommendations**: ${evaluation?.areasToImprove}`,
-      ``,
       `---`,
       ``,
-      `## Interview Transcript & Dialogue`,
+      `## Interview Transcript`,
       ``,
     ];
 
     conversation.forEach((msg, idx) => {
-      const speaker = msg.type === "ASSISTANT" ? "🤖 AI Interviewer" : "👤 Candidate";
+      const speaker = msg.type === "ASSISTANT" ? "AI Interviewer" : "Candidate";
       lines.push(`### ${speaker} (Message ${idx + 1})`);
       lines.push(`${msg.message}`);
       lines.push(``);
@@ -362,55 +434,64 @@ export function AiInterview() {
     URL.revokeObjectURL(url);
   };
 
-  return (
-    <div className="app-shell flex min-h-screen flex-col font-sans">
-      <Sidebar />
+  /* ── Interviewer orb ─────────────────────────────────────────── */
 
-      <main className="flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-        {/* Header */}
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-indigo-600 dark:text-indigo-400 mb-1">
-              <Mic className="w-3.5 h-3.5" />
-              <span>AI Mock Interview Simulator</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Interactive Interview Studio
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Practice live behavioral and technical questions with voice speech-to-text, audio question reader, and server evaluations.
-            </p>
-          </div>
+  const orbRing =
+    orbState === "speaking"
+      ? "bg-emerald-400/30 animate-ping"
+      : orbState === "listening"
+      ? "bg-rose-400/30 animate-ping"
+      : orbState === "thinking"
+      ? "bg-amber-300/25 animate-pulse"
+      : "bg-indigo-400/15";
 
-          {sessionStage === "results" && (
-            <button
-              onClick={downloadReport}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition cursor-pointer border border-slate-200 dark:border-slate-700"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download Report</span>
-            </button>
-          )}
-        </div>
+  const orbCore =
+    orbState === "speaking"
+      ? "from-emerald-400 to-teal-600"
+      : orbState === "listening"
+      ? "from-rose-400 to-rose-600"
+      : orbState === "thinking"
+      ? "from-amber-300 to-amber-500"
+      : "from-indigo-500 to-purple-600";
 
-        <div className="grid lg:grid-cols-3 gap-7">
-          {/* Left Configuration & STAR Guide */}
-          <div className="lg:col-span-1 space-y-5">
-            <div className="hunter-panel p-5 space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b border-slate-200/80 dark:border-slate-800">
-                <Sliders className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Session Setup
-                </h3>
+  const orbLabel =
+    orbState === "speaking"
+      ? "Interviewer is speaking…"
+      : orbState === "listening"
+      ? "Listening to you…"
+      : orbState === "thinking"
+      ? "Evaluating your answer…"
+      : "Ready when you are";
+
+  /* ── Setup screen ────────────────────────────────────────────── */
+
+  if (sessionStage === "idle") {
+    return (
+      <div className="app-shell flex min-h-screen flex-col font-sans">
+        <Sidebar />
+
+        <main className="flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8 max-w-2xl mx-auto w-full">
+          <div className="hunter-panel p-7 sm:p-9 space-y-6">
+            <div className="text-center space-y-2">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto shadow-sm">
+                <Mic className="w-7 h-7" />
               </div>
+              <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                AI Mock Interview
+              </h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                A live one-on-one with your AI interviewer. Questions are spoken
+                aloud — answer by voice or text, one question at a time.
+              </p>
+            </div>
 
+            <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Target Discipline / Role
+                  Target Role
                 </label>
                 <input
                   type="text"
-                  disabled={sessionStage === "active"}
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
                   placeholder="e.g. Senior Software Engineer"
@@ -421,10 +502,12 @@ export function AiInterview() {
               {resumes.length > 0 && (
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Link Resume Context
+                    <span className="inline-flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5" />
+                      Resume the interviewer will use
+                    </span>
                   </label>
                   <select
-                    disabled={sessionStage === "active"}
                     value={selectedResumeId}
                     onChange={(e) => setSelectedResumeId(e.target.value)}
                     className="hunter-input text-xs sm:text-sm cursor-pointer"
@@ -440,350 +523,362 @@ export function AiInterview() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Interview Difficulty
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
-                    <button
-                      key={d}
-                      type="button"
-                      disabled={sessionStage === "active"}
-                      onClick={() => setDifficulty(d)}
-                      className={`py-1.5 px-2 rounded-lg text-xs font-bold capitalize transition border cursor-pointer ${
-                        difficulty === d
-                          ? "bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300"
-                          : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                      } disabled:opacity-60`}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Job Description / Focus (Optional)
+                  Job Description (optional — improves question quality)
                 </label>
                 <textarea
-                  rows={2}
-                  disabled={sessionStage === "active"}
-                  placeholder="Paste specific role focus or stack requirements..."
+                  rows={3}
+                  placeholder="Paste the role's requirements or focus areas…"
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
                   className="hunter-input text-xs resize-none"
                 />
               </div>
 
-              {sessionStage !== "active" && (
-                <button
-                  onClick={handleStart}
-                  disabled={loading}
-                  className="hunter-btn-primary w-full py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2 mt-2 shadow-md cursor-pointer"
-                >
-                  <Play className="w-4 h-4 fill-white" />
-                  <span>{loading ? "Initializing..." : "Start Practice Session"}</span>
-                </button>
-              )}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Intensity
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setDifficulty(d)}
+                      className={`py-2 px-2 rounded-lg text-xs font-bold capitalize transition border cursor-pointer ${
+                        difficulty === d
+                          ? "bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300"
+                          : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      }`}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            {/* STAR Framework Cheat Card */}
-            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-2xl p-5 shadow-lg">
-              <div className="flex items-center gap-2 mb-3">
-                <Lightbulb className="w-4 h-4 text-amber-300" />
-                <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-100">
-                  The STAR Methodology
-                </h4>
-              </div>
-              <ul className="space-y-2 text-xs text-indigo-50/90 leading-relaxed">
-                <li>
-                  <strong className="text-white">Situation:</strong> Set the context and environment.
-                </li>
-                <li>
-                  <strong className="text-white">Task:</strong> Highlight what you were responsible for.
-                </li>
-                <li>
-                  <strong className="text-white">Action:</strong> Explain the exact technical steps you took.
-                </li>
-                <li>
-                  <strong className="text-white">Result:</strong> Share quantified impact and business outcomes.
-                </li>
-              </ul>
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-4 text-xs text-slate-500 dark:text-slate-400 flex items-start gap-2.5">
+              <Calendar className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+              <span>
+                5 questions, roughly 10–15 minutes. Your voice is transcribed
+                live — speak naturally, then submit each answer when you're done.
+              </span>
+            </div>
+
+            <button
+              onClick={handleStart}
+              disabled={loading}
+              className="hunter-btn-primary w-full py-3 text-sm flex items-center justify-center gap-2 shadow-md cursor-pointer"
+            >
+              <Play className="w-4 h-4 fill-white" />
+              <span>{loading ? "Connecting…" : "Start Interview"}</span>
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  /* ── Live call stage ─────────────────────────────────────────── */
+
+  if (sessionStage === "active") {
+    return (
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white font-sans">
+        {/* Call header */}
+        <header className="flex items-center justify-between px-5 sm:px-8 py-4 border-b border-white/10">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="text-xs sm:text-sm font-semibold text-white/90 truncate">
+              AI Interview — {role}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 sm:gap-5 shrink-0">
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: totalQuestions }).map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    idx < currentQuestionIndex
+                      ? "w-4 bg-emerald-400"
+                      : idx === currentQuestionIndex
+                      ? "w-6 bg-white"
+                      : "w-4 bg-white/20"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <span className="text-xs font-mono font-bold text-white/80 tabular-nums">
+              {formatClock(elapsed)}
+            </span>
+
+            <button
+              type="button"
+              onClick={endSession}
+              title="End interview"
+              className="p-2 rounded-xl text-white/60 hover:text-rose-300 hover:bg-rose-500/10 transition cursor-pointer"
+            >
+              <PhoneOff className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+
+        {/* Stage */}
+        <main className="flex-1 flex flex-col items-center justify-center px-4 py-6 relative">
+          {/* Interviewer orb */}
+          <div className="relative flex items-center justify-center mb-8">
+            <div className={`absolute w-44 h-44 sm:w-56 sm:h-56 rounded-full ${orbRing}`} />
+            <div className={`absolute w-32 h-32 sm:w-40 sm:h-40 rounded-full blur-2xl ${orbRing}`} />
+            <div
+              className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br ${orbCore} shadow-2xl transition-all duration-500 ${
+                orbState === "speaking" ? "scale-105" : ""
+              }`}
+            >
+              <div className="absolute inset-0 rounded-full bg-gradient-to-t from-black/20 to-white/10" />
+              <Sparkles className="absolute inset-0 m-auto w-8 h-8 text-white/90" />
             </div>
           </div>
 
-          {/* Right Interactive Simulator Stage */}
-          <div className="lg:col-span-2">
-            <div className="hunter-panel p-6 sm:p-7 min-h-[500px] flex flex-col justify-between">
-              {/* IDLE STATE */}
-              {sessionStage === "idle" && (
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-4 shadow-sm">
-                    <Mic className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                    Ready to practice for {role}?
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mb-6 leading-relaxed">
-                    Practice with AI-tailored questions. Speak your answers via voice dictation or type them, and receive keyword feedback and scorecards.
-                  </p>
-                  <button
-                    onClick={handleStart}
-                    disabled={loading}
-                    className="hunter-btn-primary px-6 py-3 text-sm flex items-center gap-2 cursor-pointer"
+          {/* State label */}
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/50 mb-4">
+            {orbLabel}
+          </p>
+
+          {/* Question text */}
+          <div className="max-w-2xl w-full text-center mb-6 min-h-[5rem] flex items-center justify-center">
+            {loading ? (
+              <p className="text-sm text-white/50">One moment…</p>
+            ) : (
+              <p className="text-lg sm:text-2xl font-semibold leading-snug text-white">
+                "{currentQuestion}"
+              </p>
+            )}
+          </div>
+
+          {/* Live transcription caption */}
+          {isListening && interim && (
+            <p className="max-w-2xl text-center text-sm italic text-white/60 mb-4 line-clamp-2">
+              "{interim}"
+            </p>
+          )}
+
+          {/* Keyword coverage of previous answer */}
+          {latestFeedback && !loading && (
+            <div className="max-w-2xl w-full mb-6 p-3 rounded-xl bg-white/5 border border-white/10 text-xs">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-semibold text-white/70">Last answer keyword coverage</span>
+                <span className="font-bold text-indigo-300">{latestFeedback.score}%</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {latestFeedback.matchedKeywords.slice(0, 6).map((kw, i) => (
+                  <span
+                    key={`m-${i}`}
+                    className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-400/20 font-medium text-[11px]"
                   >
-                    <Play className="w-4 h-4 fill-white" />
-                    <span>{loading ? "Starting..." : "Begin Simulation"}</span>
-                  </button>
-                </div>
-              )}
-
-              {/* ACTIVE QUESTION STATE */}
-              {sessionStage === "active" && (
-                <div className="flex-1 flex flex-col justify-between space-y-6">
-                  <div>
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-slate-800 mb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                          Live Interview Simulation
-                        </span>
-                      </div>
-                      <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-900/60">
-                        Question {currentQuestionIndex + 1} of {totalQuestions}
-                      </span>
-                    </div>
-
-                    {/* Question Box with Text-to-Speech */}
-                    <div className="bg-slate-50 dark:bg-slate-950/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 mb-5 relative group">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
-                          Interviewer Prompt #{currentQuestionIndex + 1}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => speakQuestion(currentQuestion)}
-                          title={isSpeaking ? "Stop Voice Reader" : "Listen to Question"}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 cursor-pointer bg-white dark:bg-slate-900 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs transition"
-                        >
-                          {isSpeaking ? (
-                            <>
-                              <VolumeX className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
-                              <span className="text-rose-500">Stop Voice</span>
-                            </>
-                          ) : (
-                            <>
-                              <Volume2 className="w-3.5 h-3.5" />
-                              <span>Listen</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-
-                      <p className="text-base font-semibold text-slate-900 dark:text-white leading-snug">
-                        "{currentQuestion}"
-                      </p>
-                    </div>
-
-                    {/* Previous Answer Keyword Coverage Feedback (if available) */}
-                    {latestFeedback && (
-                      <div className="mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-xs">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="font-semibold text-slate-700 dark:text-slate-300">
-                            Last Answer Keyword Coverage:
-                          </span>
-                          <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                            {latestFeedback.score}%
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {latestFeedback.matchedKeywords.map((kw, i) => (
-                            <span
-                              key={i}
-                              className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-medium text-[11px]"
-                            >
-                              ✓ {kw}
-                            </span>
-                          ))}
-                          {latestFeedback.missingKeywords.slice(0, 4).map((kw, i) => (
-                            <span
-                              key={i}
-                              className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 text-[11px]"
-                            >
-                              + {kw}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Answer Input with Speech Dictation Button */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          Your Response (STAR Methodology)
-                        </label>
-                        <button
-                          type="button"
-                          onClick={toggleListening}
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer border ${
-                            isListening
-                              ? "bg-rose-50 border-rose-300 text-rose-600 dark:bg-rose-950/60 dark:border-rose-800 dark:text-rose-400 animate-pulse"
-                              : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
-                          }`}
-                        >
-                          {isListening ? (
-                            <>
-                              <MicOff className="w-3.5 h-3.5" />
-                              <span>Listening... (Click to Stop)</span>
-                            </>
-                          ) : (
-                            <>
-                              <Mic className="w-3.5 h-3.5 text-indigo-500" />
-                              <span>Voice Dictation</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-
-                      <textarea
-                        rows={7}
-                        placeholder="Speak or outline the situation, specific actions you took, technical trade-offs, and resulting metrics..."
-                        value={currentAnswer}
-                        onChange={(e) => setCurrentAnswer(e.target.value)}
-                        className="hunter-input text-sm resize-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-200/80 dark:border-slate-800">
-                    <button
-                      type="button"
-                      onClick={handleSkip}
-                      disabled={loading}
-                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                    >
-                      <FastForward className="w-4 h-4" />
-                      <span>Skip Question</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleNextOrSubmit}
-                      disabled={loading}
-                      className="hunter-btn-primary px-5 py-2.5 text-xs sm:text-sm flex items-center gap-2 cursor-pointer disabled:opacity-60"
-                    >
-                      <span>
-                        {loading
-                          ? "Evaluating..."
-                          : currentQuestionIndex + 1 >= totalQuestions
-                          ? "Finish & Evaluate"
-                          : "Next Question"}
-                      </span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* RESULTS SCORECARD STATE */}
-              {sessionStage === "results" && evaluation && (
-                <div className="space-y-6">
-                  <div className="text-center pb-4 border-b border-slate-200/80 dark:border-slate-800">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center mx-auto mb-2 shadow-xs">
-                      <CheckCircle2 className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                      Mock Session Audit Complete
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Here is your STAR methodology scorecard and AI performance debrief.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900/60 p-3.5 rounded-xl">
-                      <div className="text-2xl font-black text-indigo-700 dark:text-indigo-300">
-                        {evaluation.overallScore}%
-                      </div>
-                      <div className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold mt-0.5">
-                        Overall Fit
-                      </div>
-                    </div>
-
-                    <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-900/60 p-3.5 rounded-xl">
-                      <div className="text-2xl font-black text-emerald-700 dark:text-emerald-300">
-                        {evaluation.clarityScore}/5.0
-                      </div>
-                      <div className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold mt-0.5">
-                        Clarity & STAR
-                      </div>
-                    </div>
-
-                    <div className="bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-900/60 p-3.5 rounded-xl">
-                      <div className="text-2xl font-black text-purple-700 dark:text-purple-300">
-                        {evaluation.relevanceScore}/5.0
-                      </div>
-                      <div className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold mt-0.5">
-                        Role Relevance
-                      </div>
-                    </div>
-                  </div>
-
-                  {evaluation.feedback && (
-                    <div className="bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/60 p-4 rounded-xl">
-                      <div className="font-bold text-indigo-900 dark:text-indigo-300 mb-1 flex items-center gap-1.5 text-xs sm:text-sm">
-                        <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                        <span>AI Evaluator Assessment</span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {evaluation.feedback}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="space-y-3 text-xs sm:text-sm">
-                    <div className="bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 p-4 rounded-xl">
-                      <div className="font-bold text-emerald-900 dark:text-emerald-300 mb-1 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <span>Key Strengths</span>
-                      </div>
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {evaluation.strengths}
-                      </p>
-                    </div>
-
-                    <div className="bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 p-4 rounded-xl">
-                      <div className="font-bold text-amber-900 dark:text-amber-300 mb-1 flex items-center gap-1.5">
-                        <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                        <span>High Impact Improvement Recommendations</span>
-                      </div>
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {evaluation.areasToImprove}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <button
-                      onClick={downloadReport}
-                      className="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm font-semibold flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700 cursor-pointer"
-                    >
-                      <FileText className="w-4 h-4 text-indigo-500" />
-                      <span>Download Scorecard (.md)</span>
-                    </button>
-
-                    <button
-                      onClick={handleStart}
-                      className="hunter-btn-primary flex-1 py-3 text-sm flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      <span>Practice Another Round</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+                    ✓ {kw}
+                  </span>
+                ))}
+                {latestFeedback.missingKeywords.slice(0, 4).map((kw, i) => (
+                  <span
+                    key={`k-${i}`}
+                    className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-400/20 text-[11px]"
+                  >
+                    + {kw}
+                  </span>
+                ))}
+              </div>
             </div>
+          )}
+
+          {/* Typed answer fallback */}
+          <div className="max-w-2xl w-full">
+            {typedMode ? (
+              <textarea
+                rows={4}
+                autoFocus
+                placeholder="Type your answer… (voice dictation still works while this is open)"
+                value={currentAnswer}
+                onChange={(e) => setCurrentAnswer(e.target.value)}
+                className="w-full rounded-2xl bg-white/5 border border-white/15 px-4 py-3 text-sm text-white placeholder-white/40 resize-none focus:outline-none focus:border-indigo-400/60"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setTypedMode(true)}
+                className="mx-auto flex items-center gap-1.5 text-xs font-medium text-white/50 hover:text-white/80 transition cursor-pointer"
+              >
+                <Keyboard className="w-3.5 h-3.5" />
+                <span>Prefer typing? Open the text answer box</span>
+              </button>
+            )}
+          </div>
+        </main>
+
+        {/* Call control dock */}
+        <footer className="px-4 pb-6 sm:pb-8">
+          <div className="mx-auto max-w-fit flex items-center gap-3 rounded-full bg-white/10 backdrop-blur-md border border-white/15 px-4 py-3 shadow-2xl">
+            <button
+              type="button"
+              onClick={toggleListening}
+              title={isListening ? "Stop dictation" : "Start dictation"}
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition cursor-pointer ${
+                isListening
+                  ? "bg-rose-500 text-white shadow-lg shadow-rose-500/40 animate-pulse"
+                  : "bg-white/10 text-white hover:bg-white/20"
+              }`}
+            >
+              {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleSpeaker}
+              title={speakerOn ? "Mute interviewer voice" : "Unmute interviewer voice"}
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition cursor-pointer ${
+                speakerOn
+                  ? "bg-white/10 text-white hover:bg-white/20"
+                  : "bg-white/10 text-white/40 hover:bg-white/20"
+              }`}
+            >
+              {speakerOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSkip}
+              disabled={loading}
+              title="Skip question"
+              className="w-12 h-12 rounded-full flex items-center justify-center bg-white/10 text-white hover:bg-white/20 transition cursor-pointer disabled:opacity-40"
+            >
+              <FastForward className="w-5 h-5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNextOrSubmit}
+              disabled={loading}
+              className="h-12 px-5 rounded-full bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-bold flex items-center gap-2 transition cursor-pointer disabled:opacity-50 shadow-lg shadow-indigo-500/30"
+            >
+              <span>
+                {loading
+                  ? "Evaluating…"
+                  : currentQuestionIndex + 1 >= totalQuestions
+                  ? "Finish & Evaluate"
+                  : "Submit Answer"}
+              </span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
+  /* ── Results scorecard ───────────────────────────────────────── */
+
+  const score = evaluation?.overallScore ?? 0;
+  const scoreCircumference = 2 * Math.PI * 52;
+  const scoreOffset = scoreCircumference - (score / 100) * scoreCircumference;
+  const scoreColor =
+    score >= 75 ? "#10b981" : score >= 50 ? "#f59e0b" : score > 0 ? "#f43f5e" : "#64748b";
+
+  return (
+    <div className="app-shell flex min-h-screen flex-col font-sans">
+      <Sidebar />
+
+      <main className="flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8 max-w-3xl mx-auto w-full">
+        <div className="hunter-panel p-7 sm:p-9 space-y-7">
+          <div className="text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-xs">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+              Interview Complete
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {role} · {difficulty.toUpperCase()} · {formatClock(elapsed)} · {conversation.filter((m) => m.type === "USER").length} answers
+            </p>
+          </div>
+
+          {/* Score ring + readiness */}
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative w-36 h-36">
+              <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  fill="none"
+                  stroke="currentColor"
+                  className="text-slate-100 dark:text-slate-800"
+                  strokeWidth="10"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  fill="none"
+                  stroke={scoreColor}
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                  strokeDasharray={scoreCircumference}
+                  strokeDashoffset={scoreOffset}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-3xl font-black text-slate-900 dark:text-white">{score}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">/ 100</span>
+              </div>
+            </div>
+
+            {evaluation?.readiness && (
+              <span
+                className={`text-xs font-bold px-3 py-1 rounded-full border ${
+                  evaluation.readiness === "READY"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                    : evaluation.readiness === "NEEDS_MORE_PREP"
+                    ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+                    : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800"
+                }`}
+              >
+                {evaluation.readiness === "READY"
+                  ? "Ready to interview"
+                  : evaluation.readiness === "NEEDS_MORE_PREP"
+                  ? "Needs more prep"
+                  : "Not ready yet"}
+              </span>
+            )}
+          </div>
+
+          {/* Evaluator feedback */}
+          <div className="bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/60 p-4 rounded-xl">
+            <div className="font-bold text-indigo-900 dark:text-indigo-300 mb-1 flex items-center gap-1.5 text-xs sm:text-sm">
+              <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span>AI Evaluator Assessment</span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+              {evaluation?.feedback}
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              onClick={downloadReport}
+              className="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm font-semibold flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700 cursor-pointer"
+            >
+              <Download className="w-4 h-4 text-indigo-500" />
+              <span>Download Report (.md)</span>
+            </button>
+
+            <button
+              onClick={handleStart}
+              className="hunter-btn-primary flex-1 py-3 text-sm flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Practice Another Round</span>
+            </button>
           </div>
         </div>
       </main>
