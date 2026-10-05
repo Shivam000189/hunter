@@ -77,9 +77,14 @@ export function AiInterview() {
       .get("/api/v1/resumes")
       .then((res) => {
         if (Array.isArray(res.data?.data)) {
-          setResumes(res.data.data);
-          if (res.data.data.length > 0) {
-            setSelectedResumeId(res.data.data[0].id || res.data.data[0]._id);
+          // Backend maps resume ids to `_id`
+          const options: ResumeOption[] = res.data.data.map((r: any) => ({
+            id: r._id || r.id,
+            versionName: r.versionName,
+          }));
+          setResumes(options);
+          if (options.length > 0) {
+            setSelectedResumeId(options[0].id);
           }
         }
       })
@@ -179,6 +184,7 @@ export function AiInterview() {
 
   const handleStart = async () => {
     setLoading(true);
+    setInterviewId(null);
     setCurrentQuestionIndex(0);
     setCurrentAnswer("");
     setConversation([]);
@@ -187,9 +193,8 @@ export function AiInterview() {
     stopSpeaking();
 
     try {
-      const selectedResume = resumes.find((r) => r.id === selectedResumeId);
       const res = await api.post("/api/v1/interviews", {
-        resumeText: selectedResume ? `Resume Version: ${selectedResume.versionName}` : `Candidate applying for ${role}`,
+        resumeId: selectedResumeId || undefined,
         jobDescription: jobDescription.trim() || `Target Role: ${role} (${difficulty} level)`,
       });
 
@@ -208,7 +213,12 @@ export function AiInterview() {
 
       setCurrentQuestion(firstQuestion);
       setSessionStage("active");
-    } catch {
+    } catch (err: any) {
+      alert(
+        err?.response?.data?.message ||
+          "Could not start a server interview. Running an offline practice session instead."
+      );
+
       // Fallback in case backend AI API is unreachable
       const fallbackPrompt = `Tell me about a time you designed and delivered a complex system or feature for ${role}.`;
       setCurrentQuestion(fallbackPrompt);

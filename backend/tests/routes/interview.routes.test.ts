@@ -88,4 +88,31 @@ describe("interview routes", () => {
     expect(response.body.success).toBe(true);
     expect(response.body.data.totalQuestions).toBe(5);
   });
+
+  it("rejects starting interview with missing resumeId", async () => {
+    const response = await request(app)
+      .post("/api/v1/interviews")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ resumeId: "", jobDescription: "Software Engineer" });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("resumeId is required");
+  });
+
+  it("returns 403 when attempting to use someone else's resume", async () => {
+    mockPrisma.resume.findUnique.mockResolvedValue({
+      id: "resume-other",
+      userId: "user-different",
+      url: "https://example.com/other.pdf",
+      resumeText: "Some text",
+    });
+
+    const response = await request(app)
+      .post("/api/v1/interviews")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ resumeId: "resume-other", jobDescription: "Software Engineer" });
+
+    expect(response.status).toBe(403);
+    expect(response.body.message).toBe("Resume not found or not yours");
+  });
 });

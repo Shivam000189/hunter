@@ -27,6 +27,10 @@ model User {
   reminderLogs     ReminderLog[]
   reminderSettings ReminderSettings?
   interviews Interview[]
+
+  githubUsername  String?
+  githubData      Json?
+  githubFetchedAt DateTime?
 }
 
 
@@ -95,6 +99,8 @@ model Resume {
   totalUsed  Int @default(0)
   interviews Int @default(0)
   offers     Int @default(0)
+
+  resumeText String? @db.Text
 }
 
 
@@ -125,19 +131,26 @@ model ReminderSettings{
 
 model Interview {
   id     String @id @default(uuid())
-  userId String?
-  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  githubMetadata  Json
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  githubMetadata  Json?
   resumeText String?
   jobDescription String?
   questionSet Json?
   answerFeedback Json?
-  status  InterviewStatus 
+  status  InterviewStatus
   score Int @default(0)
+  readiness InterviewReadiness?
   conversation  Message[]
   feedback  String?
 
   @@index([userId])
+}
+
+enum InterviewReadiness {
+  READY
+  NEEDS_MORE_PREP
+  NOT_READY
 }
 
 model Message {

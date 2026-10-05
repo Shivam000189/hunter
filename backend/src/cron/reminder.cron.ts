@@ -3,5 +3,9 @@ import { triggerReminders } from "../services/reminder.service";
 
 cron.schedule("0 9 * * *", async () => {
   console.log("Running reminder cron...");
-  await triggerReminders();
+  try {
+    await triggerReminders();
+  } catch (error) {
+    console.error("Reminder cron failed:", error);
+  }
 });

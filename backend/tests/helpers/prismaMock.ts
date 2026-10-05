@@ -16,6 +16,7 @@ export const mockPrisma = {
     findUnique: vi.fn(),
     create: vi.fn(),
     findMany: vi.fn(),
+    update: vi.fn(),
   },
   job: {
     findMany: vi.fn(),
@@ -52,6 +53,7 @@ export const mockPrisma = {
   reminderLog: {
     create: vi.fn(),
     findMany: vi.fn(),
+    deleteMany: vi.fn(),
   },
   $transaction: vi.fn(async (callback: (tx: typeof mockTx) => unknown) =>
     callback(mockTx)
@@ -63,6 +65,7 @@ const prismaMocks = [
   mockPrisma.user.findUnique,
   mockPrisma.user.create,
   mockPrisma.user.findMany,
+  mockPrisma.user.update,
   mockPrisma.job.findMany,
   mockPrisma.job.findUnique,
   mockPrisma.job.count,
@@ -85,6 +88,7 @@ const prismaMocks = [
   mockPrisma.reminderSettings.upsert,
   mockPrisma.reminderLog.create,
   mockPrisma.reminderLog.findMany,
+  mockPrisma.reminderLog.deleteMany,
   mockPrisma.$transaction,
   mockPrisma.$disconnect,
   mockTx.job.create,

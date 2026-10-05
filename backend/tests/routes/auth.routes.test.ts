@@ -94,4 +94,25 @@ describe("auth routes", () => {
       message: "Invalid credentials",
     });
   });
+
+  it("updates github username through PATCH /api/auth/github", async () => {
+    mockPrisma.user.update.mockResolvedValue({
+      id: "user-1",
+      githubUsername: "Shivam000189",
+      githubFetchedAt: null,
+    });
+
+    const response = await request(app)
+      .patch("/api/auth/github")
+      .set("Authorization", `Bearer ${generateToken("user-1")}`)
+      .send({ githubUsername: "Shivam000189" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: true,
+      data: {
+        githubUsername: "Shivam000189",
+      },
+    });
+  });
 });

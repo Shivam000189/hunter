@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, guestLogin, me, logout } from "../controllers/auth.controller";
+import { register, login, guestLogin, me, logout, setGithubUsername } from "../controllers/auth.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 
 const router = Router();
@@ -11,6 +11,6 @@ router.post("/guest", guestLogin);
 
 router.get('/me', authMiddleware,  me);
 router.post('/logout', authMiddleware, logout);
-
+router.patch("/github", authMiddleware, setGithubUsername);
 
 export default router;

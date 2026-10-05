@@ -15,7 +15,7 @@ vi.mock("../../src/utils/hash", () => ({
   comparePassword: mockComparePassword,
 }));
 
-import { getMe, loginUser, registerUser } from "../../src/services/auth.service";
+import { getMe, loginUser, registerUser, updateGithubUsername } from "../../src/services/auth.service";
 
 describe("auth.service", () => {
   beforeEach(() => {
@@ -114,6 +114,35 @@ describe("auth.service", () => {
         googleId: true,
         createdAt: true,
       },
+    });
+  });
+
+  it("updates github username and resets githubFetchedAt to null", async () => {
+    mockPrisma.user.update.mockResolvedValue({
+      id: "user-1",
+      githubUsername: "Shivam000189",
+      githubFetchedAt: null,
+    });
+
+    const result = await updateGithubUsername(
+      "user-1",
+      "https://github.com/Shivam000189/"
+    );
+
+    expect(mockPrisma.user.update).toHaveBeenCalledWith({
+      where: { id: "user-1" },
+      data: {
+        githubUsername: "Shivam000189",
+        githubFetchedAt: null,
+      },
+    });
+    expect(result.githubUsername).toBe("Shivam000189");
+  });
+
+  it("throws 400 when updating with empty github username", async () => {
+    await expect(updateGithubUsername("user-1", "   ")).rejects.toMatchObject({
+      status: 400,
+      message: "GitHub username is required",
     });
   });
 });

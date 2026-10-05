@@ -79,11 +79,7 @@ export const generateColdEmail = asyncHandler(async (req: AuthRequest, res: Resp
   res.json({
     success: true,
     data: {
-      _id: result.id,
       content: result.content,
-      jobId: result.jobId,
-      userId: result.userId,
-      generatedAt: result.generatedAt,
     },
   });
 });

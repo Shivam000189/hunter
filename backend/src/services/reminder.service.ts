@@ -1,5 +1,6 @@
 import prisma from "../config/prisma";
 import transporter from "../config/mail";
+import { z } from "zod";
 
 const oneDayAgo = () => new Date(Date.now() - 24 * 60 * 60 * 1000);
 
@@ -54,6 +55,9 @@ export const triggerReminders = async () => {
   let totalJobs = 0;
 
   for (const user of users) {
+    // Guest accounts have fake inboxes, never email them
+    if (user.email.endsWith("@guest.local")) continue;
+
     let settings = user.reminderSettings;
 
     if (!settings) {
@@ -74,11 +78,23 @@ export const triggerReminders = async () => {
     const staleDate = new Date();
     staleDate.setDate(staleDate.getDate() - staleDays);
 
+    // Skip jobs already reminded inside their nextReminder window,
+    // otherwise every daily run re-emails the same stale jobs forever
+    const snoozedLogs = await prisma.reminderLog.findMany({
+      where: {
+        userId: user.id,
+        nextReminder: { gt: new Date() },
+      },
+      select: { jobId: true },
+    });
+    const snoozedJobIds = snoozedLogs.map((log) => log.jobId);
+
     const jobs = await prisma.job.findMany({
       where: {
         userId: user.id,
         updatedAt: { lt: staleDate },
         status: { not: "REJECTED" },
+        ...(snoozedJobIds.length > 0 && { id: { notIn: snoozedJobIds } }),
       },
     });
 
@@ -138,16 +154,31 @@ export const getSettings = async (userId: string) => {
 };
 
 // update settings
+const updateSettingsSchema = z.object({
+  staleDays: z.number().int().min(1).max(90).optional(),
+  enabled: z.boolean().optional(),
+});
+
 export const updateSettings = async (
   userId: string,
   data: any
 ) => {
+  const parsed = updateSettingsSchema.safeParse(data);
+
+  if (!parsed.success) {
+    throw { status: 400, message: "Invalid reminder settings" };
+  }
+
+  const updateData: { staleDays?: number; enabled?: boolean } = {};
+  if (parsed.data.staleDays !== undefined) updateData.staleDays = parsed.data.staleDays;
+  if (parsed.data.enabled !== undefined) updateData.enabled = parsed.data.enabled;
+
   return prisma.reminderSettings.upsert({
     where: { userId },
-    update: data,
+    update: updateData,
     create: {
       userId,
-      ...data,
+      ...updateData,
     },
   });
 };

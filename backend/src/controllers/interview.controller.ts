@@ -6,7 +6,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 export const start = asyncHandler(async (req: AuthRequest, res: Response) => {
   const interview = await interviewService.startInterview(
     req.userId!,
-    String(req.body.resumeText || ""),
+    String(req.body.resumeId || ""),
     String(req.body.jobDescription || "")
   );
   res.status(201).json({ success: true, data: interview });

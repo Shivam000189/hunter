@@ -67,3 +67,17 @@ export const getMe = async (userId:string) => {
     },
   });
 };
+
+export const updateGithubUsername = async (userId: string, githubUsername: string) => {
+  const clean = githubUsername
+    .trim()
+    .replace(/^https?:\/\/(www\.)?github\.com\//i, "")
+    .replace(/\/$/, "");
+
+  if (!clean) throw { status: 400, message: "GitHub username is required" };
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: { githubUsername: clean, githubFetchedAt: null }, // null forces a fresh scrape next interview
+  });
+};

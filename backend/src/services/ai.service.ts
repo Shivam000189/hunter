@@ -24,15 +24,36 @@ userId: string,
 data: any
 ) => {
     const {
-        jobDescription,
-        userSkills = [],
         tone = "formal",
         jobId,
     } = data;
 
-    // validation
-    if (!jobDescription || typeof jobDescription !== "string") {
-        throw { status: 400, message: "jobDescription is required" };
+    const cleanJobDescription =
+        typeof data.jobDescription === "string" ? data.jobDescription.trim() : "";
+    const cleanCompany = typeof data.company === "string" ? data.company.trim() : "";
+    const cleanRole = typeof data.role === "string" ? data.role.trim() : "";
+    const userSkills = Array.isArray(data.userSkills)
+        ? data.userSkills.map((skill: unknown) => String(skill).trim()).filter(Boolean)
+        : [];
+
+    // Job description, or at least a target company/role, is required
+    if (!cleanJobDescription && !cleanCompany && !cleanRole) {
+        throw { status: 400, message: "Provide a job description, or at least a company and role" };
+    }
+
+    // jobId must reference one of the user's own jobs
+    let validJobId: string | null = null;
+    if (jobId !== undefined && jobId !== null && String(jobId).trim() !== "") {
+        const job = await prisma.job.findUnique({
+            where: { id: String(jobId) },
+            select: { userId: true },
+        });
+
+        if (!job || job.userId !== userId) {
+            throw { status: 404, message: "Job not found" };
+        }
+
+        validJobId = String(jobId);
     }
 
     const userAccess = await prisma.user.findUnique({
@@ -52,13 +73,13 @@ data: any
         }
     }
 
-    // trim  input 
+    // trim  input
     // Cap prompt input size to keep model token usage and cost predictable.
-    const trimmedJD = jobDescription.slice(0, 1000);
+    const trimmedJD = cleanJobDescription.slice(0, 1000);
 
-    
+
     const prompt = `
-    Write a ${tone} and personalized cover letter.
+    Write a ${tone} and personalized cover letter${cleanCompany ? ` for a position at ${cleanCompany}` : ""}${cleanRole ? ` as a ${cleanRole}` : ""}.
 
     Rules:
     - No placeholders like [Your Name] or [Number]
@@ -67,8 +88,8 @@ data: any
     - Mention relevant skills clearly
     - Make it specific to the job
 
-    Job Description:
-    ${trimmedJD}
+    ${cleanCompany ? `Company:\n${cleanCompany}\n\n` : ""}${cleanRole ? `Role:\n${cleanRole}\n\n` : ""}Job Description:
+    ${trimmedJD || "Not provided — infer the role requirements from the company and role above."}
 
     Candidate Skills:
     ${userSkills.join(", ")}
@@ -133,7 +154,7 @@ data: any
         data: {
         content,
         userId,
-        jobId,
+        jobId: validJobId,
         tone,
         },
     });
@@ -336,10 +357,19 @@ export const generateColdEmail = async (userId: string, data: any) => {
         throw { status: 403, message: "Cold email generation is unavailable for guest users" };
     }
 
-    const { recipientName, companyName, jobTitle, userSkills = [], tone = "formal" } = data;
-    
-    if (!recipientName || !companyName || !jobTitle) {
-        throw { status: 400, message: "recipientName, companyName, and jobTitle are required" };
+    const {
+        companyName,
+        jobTitle,
+        userSkills = [],
+        tone = "formal",
+    } = data;
+    const recipientName =
+        typeof data.recipientName === "string" && data.recipientName.trim()
+        ? data.recipientName.trim()
+        : "Hiring Manager";
+
+    if (!companyName || !jobTitle) {
+        throw { status: 400, message: "companyName and jobTitle are required" };
     }
 
     const prompt = `
@@ -377,16 +407,21 @@ export const generateColdEmail = async (userId: string, data: any) => {
     }
 
     if (!content) {
-        content = `Dear ${recipientName},
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true },
+        });
 
-Hi, My name is shivam. I am Btech cse Passout student with cgpa of 7.2. 
+        const userName = user?.name || "Candidate";
+
+        content = `Dear ${recipientName},
 
 I am excited to apply for the ${jobTitle} position at ${companyName}. With my skills in ${userSkills.join(", ")}, I believe I can contribute effectively to your team.
 
 Thank you for your time and consideration.
 
 Sincerely,
-Candidate`;
+${userName}`;
     }
 
     return { content };

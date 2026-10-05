@@ -85,15 +85,27 @@ export function AiCoverLetter() {
     setLoading(true);
 
     try {
+      const userSkills = skills.trim()
+        ? skills.split(",").map((s) => s.trim()).filter(Boolean)
+        : undefined;
+
       const endpoint = mode === "cover-letter" ? "/api/v1/ai/cover-letter" : "/api/v1/ai/cold-email";
-      const payload = {
-        company: company.trim(),
-        role: role.trim(),
-        skills: skills.trim() ? skills.split(",").map((s) => s.trim()) : undefined,
-        tone,
-        jobDescription: jobDescription.trim() || undefined,
-        recipient: recipient.trim() || undefined,
-      };
+      const payload =
+        mode === "cover-letter"
+          ? {
+              company: company.trim(),
+              role: role.trim(),
+              userSkills,
+              tone,
+              jobDescription: jobDescription.trim(),
+            }
+          : {
+              recipientName: recipient.trim() || undefined,
+              companyName: company.trim(),
+              jobTitle: role.trim(),
+              userSkills,
+              tone,
+            };
 
       const res = await api.post(endpoint, payload);
       const generatedText = res.data?.data?.coverLetter || res.data?.data?.email || res.data?.data?.content;

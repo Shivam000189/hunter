@@ -1,6 +1,24 @@
 import cloudinary from "../config/cloudinary";
 import prisma from "../config/prisma";
 import { getResumeFeedback } from "./ai.service";
+import { extractResumeTextFromUrl } from "../utils/pdfText";
+
+export const ensureResumeText = async (resume: {
+  id: string;
+  url: string;
+  resumeText: string | null;
+}): Promise<string> => {
+  if (resume.resumeText) return resume.resumeText;
+
+  const extracted = await extractResumeTextFromUrl(resume.url);
+  if (extracted) {
+    await prisma.resume.update({
+      where: { id: resume.id },
+      data: { resumeText: extracted },
+    });
+  }
+  return extracted;
+};
 
 export const uploadResume = async (
   userId: string,
@@ -33,12 +51,15 @@ export const uploadResume = async (
     }
   );
 
+  const resumeText = await extractResumeTextFromUrl(uploadResult.secure_url);
+
   const resume = await prisma.resume.create({
     data: {
       url: uploadResult.secure_url,
       publicId: uploadResult.public_id,
       versionName,
       userId,
+      resumeText: resumeText || null,
     },
   });
 
@@ -142,10 +163,6 @@ export const analyzeResumeATS = async (
 ) => {
   const resume = await getResumeById(userId, id);
 
-  if (typeof data.resumeText !== "string" || !data.resumeText.trim()) {
-    throw { status: 400, message: "resumeText is required" };
-  }
-
   if (
     data.jobDescription !== undefined &&
     typeof data.jobDescription !== "string"
@@ -153,8 +170,23 @@ export const analyzeResumeATS = async (
     throw { status: 400, message: "jobDescription must be a string" };
   }
 
+  // Use explicitly provided text, otherwise extract it from the stored resume PDF
+  let resumeText =
+    typeof data.resumeText === "string" ? data.resumeText.trim() : "";
+
+  if (!resumeText) {
+    resumeText = await ensureResumeText(resume);
+  }
+
+  if (!resumeText) {
+    throw {
+      status: 422,
+      message: "Could not read text from this resume. Paste the resume text or re-upload it.",
+    };
+  }
+
   const feedback = await getResumeFeedback(userId, {
-    resumeText: data.resumeText,
+    resumeText,
     jobDescription: data.jobDescription,
   });
 

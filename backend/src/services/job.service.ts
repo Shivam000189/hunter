@@ -230,6 +230,9 @@ export const deleteJob = async (userId: string, id: string) => {
       );
     }
 
+    // ReminderLog.jobId has ON DELETE RESTRICT, so logs must go first
+    await tx.reminderLog.deleteMany({ where: { jobId: id } });
+
     return tx.job.delete({
       where: { id },
     });

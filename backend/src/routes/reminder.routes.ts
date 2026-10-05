@@ -10,7 +10,6 @@ router.get("/", reminderController.getLogs);
 router.get("/pending", reminderController.getPending);
 router.post("/acknowledge", reminderController.acknowledge);
 router.get("/settings", reminderController.getSettings);
-router.post("/trigger", reminderController.trigger);
 router.patch("/settings", reminderController.updateSettings);
 
 export default router;

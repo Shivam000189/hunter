@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUser, loginUser, createGuestUser, getMe } from "../services/auth.service";
+import { registerUser, loginUser, createGuestUser, getMe, updateGithubUsername } from "../services/auth.service";
 import { generateToken } from "../utils/jwt";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -83,3 +83,9 @@ export const logout = asyncHandler(async (_req: Request, res: Response) => {
     message: "Logged out successfully",
   });
 });
+
+export const setGithubUsername = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const user = await updateGithubUsername(req.userId!, String(req.body.githubUsername || ""));
+  res.json({ success: true, data: { githubUsername: user.githubUsername } });
+});
+

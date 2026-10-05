@@ -53,17 +53,6 @@ export const getSettings = async (
   });
 };
 
-// trigger - admin 
-export const trigger = async (req: AuthRequest, res: Response) => {
-  const result = await reminderService.triggerReminders();
-
-  res.json({
-    success: true,
-    data: result,
-  });
-};
-
-
 export const updateSettings = async (
   req: AuthRequest,
   res: Response
